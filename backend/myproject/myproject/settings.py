@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "myapp",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -79,6 +80,17 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'your_database_name',
+#         'USER': 'your_mysql_user',
+#         'PASSWORD': 'your_mysql_password',
+#         'HOST': 'localhost',  # 或是你的 MySQL 伺服器 IP
+#         'PORT': '3306',       # MySQL 預設 port
+#     }
+# }
 
 
 # Password validation

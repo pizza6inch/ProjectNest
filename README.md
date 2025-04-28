@@ -38,8 +38,9 @@ source .venv/bin/activate
 ```
 
 install dependencies & check
-```
+```cmd
 pip install -r requirements.txt
+cd myproject
 python manage.py runserver
 ```
 

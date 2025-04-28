@@ -9,7 +9,7 @@ for database course project
 
 ```cmd
 cd frontend
-npm install 
+npm install
 npm run dev
 ```
 
@@ -18,13 +18,19 @@ npm run dev
 cd backend
 ```
 
+(if first time)
+create virtual environment
+```cmd
+python -m venv .venv
+```
+
 if using cmd
 ```
-.venv\Scripts\activate 
+.venv\Scripts\activate
 ```
 if using powershell
 ```
-.venv\Scripts\Activate.ps1 
+.venv\Scripts\Activate.ps1
 ```
 if using macOS / Linux
 ```
@@ -42,4 +48,4 @@ if you need to install new package then remember to update requirements.txt
 pip freeze > requirements.txt
 ```
 
-## 
+##

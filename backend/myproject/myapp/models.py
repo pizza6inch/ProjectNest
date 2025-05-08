@@ -1,18 +1,5 @@
 from django.db import models
 
-
-# class UserProfile(models.Model):
-#     first_name = models.CharField(max_length=30)
-#     last_name = models.CharField(max_length=30)
-#     email = models.EmailField(unique=True)
-#     birth_date = models.DateField(null=True, blank=True)
-#     created_at = models.DateTimeField(auto_now_add=True)  # 自動記錄建立時間
-#     updated_at = models.DateTimeField(auto_now=True)  # 自動記錄更新時間
-
-#     def __str__(self):
-#         return f"{self.first_name} {self.last_name} ({self.email})"
-
-
 class User(models.Model):
     # 學號、教師工號
     user_id = models.CharField(primary_key=True, max_length=10)
@@ -71,7 +58,7 @@ class ProjectProgress(models.Model):
     progress_id = models.AutoField(primary_key=True)
 
     # FK 連結到 Project id
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     # 進度狀態 : 完成、進行中
     status = models.CharField(
@@ -94,10 +81,10 @@ class Comment(models.Model):
     comment_id = models.AutoField(primary_key=True)
 
     # FK 連結到 User id
-    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     # FK 連結到 Project id
-    progress_id = models.ForeignKey(ProjectProgress, on_delete=models.CASCADE)
+    progress = models.ForeignKey(ProjectProgress, on_delete=models.CASCADE)
 
     # 訊息內容
     content = models.TextField()
@@ -110,7 +97,7 @@ class Comment(models.Model):
 
 class ProjectUser(models.Model):
     # FK 連結到 User id
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # FK 連結到 Project id
-    project_id = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)

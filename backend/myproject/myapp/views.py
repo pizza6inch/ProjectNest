@@ -18,3 +18,13 @@ class UserListAPIView(viewsets.ModelViewSet):
         users = User.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=["get"])
+    def users_id(self, request, pk=None):
+        print(pk)
+        try:
+            user = User.objects.get(user_id=pk)
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)

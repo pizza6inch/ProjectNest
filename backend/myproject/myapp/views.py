@@ -58,25 +58,21 @@ class UserListAPIView(viewsets.ModelViewSet):
             token = auth_header.split(' ')[1] if ' ' in auth_header else auth_header
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload.get('user_id')
-            if not user_id:
-                return None, Response({'error': 'user_id not found in token'}, status=status.HTTP_401_UNAUTHORIZED)
-            return user_id, None
+            role = payload.get('role')
+            if not user_id or not role:
+                return None, Response({'error': 'user_id or role not found in token'}, status=status.HTTP_401_UNAUTHORIZED)
+            return {"user_id":user_id,"role":role}, None
         except jwt.ExpiredSignatureError:
             return None, Response({'error': 'Token has expired'}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
             return None, Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    def create(self, request, *args, **kwargs):
-        user_id, error_response = self._get_user_id_from_token(request)
+    def check(self, request, *args, **kwargs):
+        user, error_response = self._get_user_id_from_token(request)
+        print(user)
         if error_response:
             return error_response
-
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user_id=user_id)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'user':user["user_id"],"role":user["role"]})
 
     @action(detail=False, methods=["post"])
     def obtain_token(self, request):
@@ -94,6 +90,7 @@ class UserListAPIView(viewsets.ModelViewSet):
 
             payload = {
                 'user_id': user.user_id,
+                'role':user.role
             }
             token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
             return Response({'token': token}, status=status.HTTP_200_OK)

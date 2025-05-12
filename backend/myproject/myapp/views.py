@@ -19,14 +19,13 @@ class UserListAPIView(viewsets.ModelViewSet):
         if role:
             users = users.filter(role=role)
         
-        if sort_by:
-            if sort_by in [f.name for f in User._meta.fields]:
-                users = users.order_by(sort_by)
-            else:
-                return Response(
-                {'error': 'Please enter a valid field.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if sort_by in [f.name for f in User._meta.fields if f.name != 'password']:
+            users = users.order_by(sort_by)
+        else:
+            return Response(
+            {'error': 'Please enter a valid field.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
         paginator = Paginator(users, page_size)
         page_obj = paginator.get_page(page)
@@ -59,25 +58,25 @@ class UserListAPIView(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    # # 更新使用者
-    # @action(detail=True, methods=["put"])
-    # def update_user(self, request, pk=None):
-    #     try:
-    #         user = User.objects.get(user_id=pk)
-    #         serializer = UserSerializer(user, data=request.data)
-    #         if serializer.is_valid():
-    #             serializer.save()
-    #             return Response(serializer.data, status=status.HTTP_200_OK)
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     except User.DoesNotExist:
-    #         return Response({'error': 'User not found'}, status=404)
+    # 更新使用者
+    @action(detail=True, methods=["put"])
+    def update_user(self, request, pk=None):
+        try:
+            user = User.objects.get(user_id=pk)
+            serializer = UserSerializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
         
-    # # 刪除使用者
-    # @action(detail=True, methods=["delete"])
-    # def delete_user(self, request, pk=None):
-    #     try:
-    #         user = User.objects.get(user_id=pk)
-    #         user.delete()
-    #         return Response(status=status.HTTP_204_NO_CONTENT)
-    #     except User.DoesNotExist:
-    #         return Response({'error': 'User not found'}, status=404)
+    # 刪除使用者
+    @action(detail=True, methods=["delete"])
+    def delete_user(self, request, pk=None):
+        try:
+            user = User.objects.get(user_id=pk)
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)

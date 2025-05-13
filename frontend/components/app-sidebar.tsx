@@ -2,7 +2,8 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Home, FolderKanban, User, LogOut, Search } from "lucide-react"
+import { Home, FolderKanban, User, LogOut, Search, Settings } from "lucide-react"
+import { useAuth } from "../hooks/useAuth"
 
 import {
   Sidebar,
@@ -23,6 +24,7 @@ import { Input } from "@/components/ui/input"
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
 
   const isActive = (path: string) => {
     return pathname === path
@@ -58,14 +60,46 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                  <Link href="/dashboard">
-                    <User className="h-4 w-4" />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {user && (user.role === "student" || user.role === "professor") && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+                    <Link href="/dashboard">
+                      <User className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {user && user.role === "admin" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/admin")}>
+                    <Link href="/admin">
+                      <Settings className="h-4 w-4" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {!user && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/login")}>
+                      <Link href="/login">
+                        <User className="h-4 w-4" />
+                        <span>Login</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/register")}>
+                      <Link href="/register">
+                        <User className="h-4 w-4" />
+                        <span>Register</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -99,22 +133,24 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t p-2">
-        <div className="flex items-center gap-2 p-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder-user.jpg" alt="User" />
-            <AvatarFallback>JD</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">John Doe</span>
-            <span className="text-xs text-muted-foreground">Professor</span>
+      {user && (
+        <SidebarFooter className="border-t p-2">
+          <div className="flex items-center gap-2 p-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user.avatar || "/placeholder-user.jpg"} alt={user.name} />
+              <AvatarFallback>{user.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{user.name}</span>
+              <span className="text-xs text-muted-foreground">{user.role}</span>
+            </div>
+            <Button variant="ghost" size="icon" className="ml-auto" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+              <span className="sr-only">Log out</span>
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" className="ml-auto">
-            <LogOut className="h-4 w-4" />
-            <span className="sr-only">Log out</span>
-          </Button>
-        </div>
-      </SidebarFooter>
+        </SidebarFooter>
+      )}
     </Sidebar>
   )
 }

@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Clock4,
   AlertCircle,
-  Users,
   GraduationCap,
   Paperclip,
   Send,
@@ -44,14 +43,13 @@ const project = {
     initials: "SJ",
     role: "Student",
   },
-  team: "Data Science",
   professor: "Dr. Williams",
-  teamMembers: [
+  members: [
     {
       name: "Sarah Johnson",
       avatar: "/placeholder-user.jpg",
       initials: "SJ",
-      role: "Team Lead",
+      role: "Project Lead",
     },
     {
       name: "Alex Thompson",
@@ -271,7 +269,7 @@ export default function ProjectDetailPage() {
                 <Separator />
 
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Team Lead</h3>
+                  <h3 className="text-sm font-medium mb-2">Project Lead</h3>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={project.teamLead.avatar || "/placeholder.svg"} alt={project.teamLead.name} />
@@ -292,20 +290,12 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Team</h3>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm">{project.team}</span>
-                  </div>
-                </div>
-
                 <Separator />
 
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Team Members</h3>
+                  <h3 className="text-sm font-medium mb-2">Project Members</h3>
                   <div className="space-y-2">
-                    {project.teamMembers.map((member) => (
+                    {project.members.map((member) => (
                       <div key={member.name} className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
@@ -323,7 +313,7 @@ export default function ProjectDetailPage() {
                 <div className="pt-2">
                   <Button className="w-full">
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Team Member
+                    Add Member
                   </Button>
                 </div>
               </CardContent>

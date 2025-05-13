@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Home, FolderKanban, User, Users, BookOpen, LogOut, Search } from "lucide-react"
+import { Home, FolderKanban, User, LogOut, Search } from "lucide-react"
 
 import {
   Sidebar,
@@ -92,30 +92,6 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild>
                   <Link href="/?status=pending">
                     <span>Pending</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Teams</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/?team=cs-101">
-                    <Users className="h-4 w-4" />
-                    <span>CS-101</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/?team=data-science">
-                    <BookOpen className="h-4 w-4" />
-                    <span>Data Science</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
   Clock,
@@ -38,8 +38,27 @@ const projects = [
       avatar: "/placeholder-user.jpg",
       initials: "SJ",
     },
-    team: "Data Science",
     professor: "Dr. Williams",
+    members: [
+      {
+        name: "Sarah Johnson",
+        avatar: "/placeholder-user.jpg",
+        initials: "SJ",
+        role: "Team Lead",
+      },
+      {
+        name: "Alex Thompson",
+        avatar: "/placeholder-user.jpg",
+        initials: "AT",
+        role: "Student",
+      },
+      {
+        name: "Maya Patel",
+        avatar: "/placeholder-user.jpg",
+        initials: "MP",
+        role: "Student",
+      },
+    ],
     lastUpdated: "2 days ago",
   },
   {
@@ -53,8 +72,21 @@ const projects = [
       avatar: "/placeholder-user.jpg",
       initials: "MC",
     },
-    team: "CS-101",
     professor: "Dr. Garcia",
+    members: [
+      {
+        name: "Michael Chen",
+        avatar: "/placeholder-user.jpg",
+        initials: "MC",
+        role: "Team Lead",
+      },
+      {
+        name: "Lisa Wang",
+        avatar: "/placeholder-user.jpg",
+        initials: "LW",
+        role: "Student",
+      },
+    ],
     lastUpdated: "5 days ago",
   },
   {
@@ -68,8 +100,27 @@ const projects = [
       avatar: "/placeholder-user.jpg",
       initials: "ER",
     },
-    team: "CS-101",
     professor: "Dr. Williams",
+    members: [
+      {
+        name: "Emily Rodriguez",
+        avatar: "/placeholder-user.jpg",
+        initials: "ER",
+        role: "Team Lead",
+      },
+      {
+        name: "Daniel Park",
+        avatar: "/placeholder-user.jpg",
+        initials: "DP",
+        role: "Student",
+      },
+      {
+        name: "Sophia Lee",
+        avatar: "/placeholder-user.jpg",
+        initials: "SL",
+        role: "Student",
+      },
+    ],
     lastUpdated: "1 week ago",
   },
   {
@@ -83,8 +134,21 @@ const projects = [
       avatar: "/placeholder-user.jpg",
       initials: "DK",
     },
-    team: "CS-101",
     professor: "Dr. Garcia",
+    members: [
+      {
+        name: "David Kim",
+        avatar: "/placeholder-user.jpg",
+        initials: "DK",
+        role: "Team Lead",
+      },
+      {
+        name: "Rachel Chen",
+        avatar: "/placeholder-user.jpg",
+        initials: "RC",
+        role: "Student",
+      },
+    ],
     lastUpdated: "3 days ago",
   },
   {
@@ -98,8 +162,21 @@ const projects = [
       avatar: "/placeholder-user.jpg",
       initials: "OS",
     },
-    team: "Data Science",
     professor: "Dr. Williams",
+    members: [
+      {
+        name: "Olivia Smith",
+        avatar: "/placeholder-user.jpg",
+        initials: "OS",
+        role: "Team Lead",
+      },
+      {
+        name: "James Wilson",
+        avatar: "/placeholder-user.jpg",
+        initials: "JW",
+        role: "Student",
+      },
+    ],
     lastUpdated: "1 day ago",
   },
   {
@@ -113,8 +190,27 @@ const projects = [
       avatar: "/placeholder-user.jpg",
       initials: "JW",
     },
-    team: "CS-101",
     professor: "Dr. Garcia",
+    members: [
+      {
+        name: "James Wilson",
+        avatar: "/placeholder-user.jpg",
+        initials: "JW",
+        role: "Team Lead",
+      },
+      {
+        name: "Emma Davis",
+        avatar: "/placeholder-user.jpg",
+        initials: "ED",
+        role: "Student",
+      },
+      {
+        name: "Noah Martinez",
+        avatar: "/placeholder-user.jpg",
+        initials: "NM",
+        role: "Student",
+      },
+    ],
     lastUpdated: "1 week ago",
   },
 ]
@@ -151,17 +247,20 @@ function StatusBadge({ status }: { status: string }) {
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [teamFilter, setTeamFilter] = useState("all")
+  const [professorFilter, setprofessorFilter] = useState("all")
   const [sortBy, setSortBy] = useState("lastUpdated")
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(6) // 6 items per page (2 rows of 3 cards)
 
   // Filter and sort projects
   const filteredProjects = projects
     .filter((project) => {
       const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesStatus = statusFilter === "all" || project.status === statusFilter
-      const matchesTeam = teamFilter === "all" || project.team === teamFilter
+      const matchesProfessor = professorFilter === "all" || project.professor === professorFilter
 
-      return matchesSearch && matchesStatus && matchesTeam
+      return matchesSearch && matchesStatus && matchesProfessor
     })
     .sort((a, b) => {
       if (sortBy === "lastUpdated") {
@@ -174,6 +273,17 @@ export default function HomePage() {
       }
       return 0
     })
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage)
+
+  // Get current projects for the page
+  const currentProjects = filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter, professorFilter, sortBy])
 
   return (
     <div className="container mx-auto py-6">
@@ -223,15 +333,15 @@ export default function HomePage() {
                     </Select>
                   </div>
                   <div>
-                    <p className="text-xs font-medium mb-1">Team</p>
-                    <Select value={teamFilter} onValueChange={setTeamFilter}>
+                    <p className="text-xs font-medium mb-1">Professor</p>
+                    <Select value={professorFilter} onValueChange={setprofessorFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select team" />
+                        <SelectValue placeholder="Select professor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Teams</SelectItem>
-                        <SelectItem value="CS-101">CS-101</SelectItem>
-                        <SelectItem value="Data Science">Data Science</SelectItem>
+                        <SelectItem value="all">All Professors</SelectItem>
+                        <SelectItem value="Dr. Williams">Dr. Williams</SelectItem>
+                        <SelectItem value="Dr. Garcia">Dr. Garcia</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -256,7 +366,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
+          {currentProjects.map((project) => (
             <Link href={`/projects/${project.id}`} key={project.id} className="block">
               <Card className="h-full hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
@@ -288,7 +398,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="h-4 w-4" />
-                      <span>Team: {project.team}</span>
+                      <span>Members: {project.members.length}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
@@ -304,7 +414,7 @@ export default function HomePage() {
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{project.teamLead.name}</span>
-                      <span className="text-xs text-muted-foreground">Team Lead</span>
+                      <span className="text-xs text-muted-foreground">Project Lead</span>
                     </div>
                     <div className="ml-auto flex items-center text-xs text-muted-foreground">
                       <Clock className="mr-1 h-3 w-3" />
@@ -316,6 +426,69 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+
+        {filteredProjects.length > 0 && (
+          <div className="flex justify-center mt-6">
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  // Show first page, last page, current page, and pages around current
+                  let pageNum = i + 1
+
+                  if (totalPages > 5) {
+                    if (currentPage <= 3) {
+                      // Near start: show first 5 pages
+                      pageNum = i + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      // Near end: show last 5 pages
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      // Middle: show current page and 2 pages on each side
+                      pageNum = currentPage - 2 + i
+                    }
+                  }
+
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className="w-9"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <>
+                    {currentPage < totalPages - 3 && <span className="mx-1">...</span>}
+                    <Button variant="outline" size="sm" className="w-9" onClick={() => setCurrentPage(totalPages)}>
+                      {totalPages}
+                    </Button>
+                  </>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
 
         {filteredProjects.length === 0 && (
           <div className="text-center py-12">

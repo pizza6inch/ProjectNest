@@ -43,7 +43,7 @@ const myProjects = [
     status: "in-progress",
     deadline: "2025-06-15",
     progress: 65,
-    team: "Data Science",
+    professor: "Dr. Williams",
     lastActivity: "Sarah posted an update 2 days ago",
   },
   {
@@ -52,7 +52,7 @@ const myProjects = [
     status: "in-progress",
     deadline: "2025-06-30",
     progress: 45,
-    team: "CS-101",
+    professor: "Dr. Garcia",
     lastActivity: "David uploaded new files 3 days ago",
   },
   {
@@ -61,7 +61,7 @@ const myProjects = [
     status: "pending",
     deadline: "2025-08-01",
     progress: 5,
-    team: "CS-101",
+    professor: "Dr. Garcia",
     lastActivity: "Project created 1 week ago",
   },
 ]
@@ -73,7 +73,7 @@ const trackedProjects = [
     status: "pending",
     deadline: "2025-07-01",
     progress: 10,
-    team: "CS-101",
+    professor: "Dr. Garcia",
     lastActivity: "Michael added team members 5 days ago",
   },
   {
@@ -82,7 +82,7 @@ const trackedProjects = [
     status: "completed",
     deadline: "2025-05-20",
     progress: 100,
-    team: "CS-101",
+    professor: "Dr. Williams",
     lastActivity: "Project completed 1 week ago",
   },
   {
@@ -91,7 +91,7 @@ const trackedProjects = [
     status: "in-progress",
     deadline: "2025-07-15",
     progress: 30,
-    team: "Data Science",
+    professor: "Dr. Williams",
     lastActivity: "Olivia posted an update 1 day ago",
   },
 ]
@@ -127,7 +127,7 @@ const recentActivity = [
     type: "member",
     project: "Web Application Security Analysis",
     user: "Michael Chen",
-    action: "added new team members",
+    action: "added new members",
     time: "5 days ago",
   },
   {
@@ -194,7 +194,7 @@ function ProjectCard({ project }: { project: any }) {
         <Link href={`/projects/${project.id}`} className="hover:underline">
           <CardTitle className="text-lg line-clamp-1">{project.title}</CardTitle>
         </Link>
-        <CardDescription className="line-clamp-1">Team: {project.team}</CardDescription>
+        <CardDescription className="line-clamp-1">Professor: {project.professor}</CardDescription>
       </CardHeader>
       <CardContent className="pb-2">
         <div className="space-y-4">

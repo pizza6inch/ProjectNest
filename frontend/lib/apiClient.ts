@@ -55,6 +55,14 @@ export interface User {
   avatar?: string
 }
 
+
+// Get Users
+export const getUsers = async():Promise<User[]> => {
+  const response = await apiClient.get<User[]>("/get_users")
+  console.log("getUsers API");
+  return response.data
+}
+
 // Create a new user
 export const createUser = async (userData: {
   name: string
@@ -63,6 +71,8 @@ export const createUser = async (userData: {
   role: string
 }): Promise<User> => {
   const response = await apiClient.post<User>("/users", userData)
+  console.log("createUser API");
+
   return response.data
 }
 
@@ -79,6 +89,7 @@ export interface Project {
 
 export const getProjects = async (): Promise<Project[]> => {
   const response = await apiClient.get<Project[]>("/projects")
+  console.log("getProjects API");
   return response.data
 }
 

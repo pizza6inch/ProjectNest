@@ -25,6 +25,8 @@ import { Progress } from "@/components/ui/progress"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+import { getProjects, getUsers} from "@/lib/apiClient"
+
 // Mock data for projects
 const projects = [
   {
@@ -252,6 +254,9 @@ export default function HomePage() {
 
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(6) // 6 items per page (2 rows of 3 cards)
+  const [loading,setLoading] = useState(false)
+
+
 
   // Filter and sort projects
   const filteredProjects = projects
@@ -284,6 +289,29 @@ export default function HomePage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [searchQuery, statusFilter, professorFilter, sortBy])
+
+  useEffect(() => {
+
+
+    const fetchUsers = async () => {
+      try {
+        setLoading(true)
+        const data = await getUsers()
+        console.log(data);
+
+        // setProjects(data)
+      } catch (err) {
+        console.error("Failed to fetch projects", err)
+        // setError("Failed to load projects")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  },[])
+
+
 
   return (
     <div className="container mx-auto py-6">

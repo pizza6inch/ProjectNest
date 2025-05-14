@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { useRouter } from "next/navigation"
 
-type UserRole = "student" | "professor" | "guest" | "admin" | null
+type UserRole = "student" | "professor" | "admin" | null
 
 interface User {
   id: string
@@ -24,6 +24,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const router = useRouter()
@@ -74,19 +75,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               avatar: "/placeholder-user.jpg",
             })
           } else {
-            resolve({
-              id: "4",
-              name: "Guest User",
-              email,
-              role: "guest",
-              avatar: "/placeholder-user.jpg",
-            })
+            reject(new Error("Invalid email or password"))
           }
         }, 1000)
       })
       setUser(response)
       localStorage.setItem("user", JSON.stringify(response))
-      router.push("/dashboard")
+
+      if(response.role === 'admin') router.push("/admin")
+      else{
+        router.push("/dashboard")
+      }
     } catch (error) {
       console.error("Login failed", error)
       throw error
@@ -111,7 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await new Promise((resolve) => setTimeout(resolve, 1000))
       setUser(newUser)
       localStorage.setItem("user", JSON.stringify(newUser))
-      router.push("/dashboard")
+      if(newUser.role === 'admin') router.push("/admin")
+        else{
+          router.push("/dashboard")
+        }router.push("/dashboard")
     } catch (error) {
       console.error("Registration failed", error)
       throw error

@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/useAuth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+
 export default function LoginPage() {
   const { login, loading } = useAuth()
   const router = useRouter()
@@ -19,7 +20,7 @@ export default function LoginPage() {
     setError("")
     try {
       await login(email, password)
-      router.push("/dashboard")
+      // router.push("/dashboard")
     } catch (err) {
       setError("Invalid email or password")
     }

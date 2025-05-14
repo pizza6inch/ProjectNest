@@ -21,8 +21,8 @@ export default function RegisterPage() {
     e.preventDefault()
     setError("")
     try {
-      await register(name, email, password, role as "student" | "professor" | "admin")
-      router.push("/dashboard")
+      await register(name, email, password, role as "student" | "professor")
+      // router.push("/dashboard")
     } catch (err) {
       setError("Registration failed")
     }
@@ -82,7 +82,7 @@ export default function RegisterPage() {
             <SelectContent>
               <SelectItem value="student">Student</SelectItem>
               <SelectItem value="professor">Professor</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
+              {/* <SelectItem value="admin">Admin</SelectItem> */}
             </SelectContent>
           </Select>
         </div>

@@ -25,205 +25,215 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-// Mock user data
-const user = {
-  name: "John Doe",
-  email: "john.doe@university.edu",
-  role: "Professor",
-  avatar: "/placeholder-user.jpg",
-  department: "Computer Science",
-  joinDate: "2023-01-15",
-}
 
-// Mock projects data
-const myProjects = [
-  {
-    id: "1",
-    title: "Machine Learning Algorithm Comparison",
-    status: "in-progress",
-    deadline: "2025-06-15",
-    progress: 65,
-    professor: "Dr. Williams",
-    lastActivity: "Sarah posted an update 2 days ago",
-  },
-  {
-    id: "4",
-    title: "Mobile App Development for Campus Services",
-    status: "in-progress",
-    deadline: "2025-06-30",
-    progress: 45,
-    professor: "Dr. Garcia",
-    lastActivity: "David uploaded new files 3 days ago",
-  },
-  {
-    id: "6",
-    title: "Cloud Infrastructure Deployment",
-    status: "pending",
-    deadline: "2025-08-01",
-    progress: 5,
-    professor: "Dr. Garcia",
-    lastActivity: "Project created 1 week ago",
-  },
-]
-
-const trackedProjects = [
-  {
-    id: "2",
-    title: "Web Application Security Analysis",
-    status: "pending",
-    deadline: "2025-07-01",
-    progress: 10,
-    professor: "Dr. Garcia",
-    lastActivity: "Michael added team members 5 days ago",
-  },
-  {
-    id: "3",
-    title: "Database Optimization Techniques",
-    status: "completed",
-    deadline: "2025-05-20",
-    progress: 100,
-    professor: "Dr. Williams",
-    lastActivity: "Project completed 1 week ago",
-  },
-  {
-    id: "5",
-    title: "Natural Language Processing Research",
-    status: "in-progress",
-    deadline: "2025-07-15",
-    progress: 30,
-    professor: "Dr. Williams",
-    lastActivity: "Olivia posted an update 1 day ago",
-  },
-]
-
-// Recent activity
-const recentActivity = [
-  {
-    id: "a1",
-    type: "update",
-    project: "Machine Learning Algorithm Comparison",
-    user: "Sarah Johnson",
-    action: "posted an update",
-    time: "2 days ago",
-  },
-  {
-    id: "a2",
-    type: "comment",
-    project: "Natural Language Processing Research",
-    user: "Dr. Williams",
-    action: "commented on an update",
-    time: "1 day ago",
-  },
-  {
-    id: "a3",
-    type: "status",
-    project: "Database Optimization Techniques",
-    user: "Emily Rodriguez",
-    action: "marked the project as completed",
-    time: "1 week ago",
-  },
-  {
-    id: "a4",
-    type: "member",
-    project: "Web Application Security Analysis",
-    user: "Michael Chen",
-    action: "added new members",
-    time: "5 days ago",
-  },
-  {
-    id: "a5",
-    type: "file",
-    project: "Mobile App Development for Campus Services",
-    user: "David Kim",
-    action: "uploaded new files",
-    time: "3 days ago",
-  },
-]
-
-// Status badge component
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case "completed":
-      return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-          <CheckCircle2 className="mr-1 h-3 w-3" />
-          Completed
-        </Badge>
-      )
-    case "in-progress":
-      return (
-        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-          <Clock4 className="mr-1 h-3 w-3" />
-          In Progress
-        </Badge>
-      )
-    case "pending":
-      return (
-        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-          <AlertCircle className="mr-1 h-3 w-3" />
-          Pending
-        </Badge>
-      )
-    default:
-      return <Badge>{status}</Badge>
-  }
-}
-
-// Project card component
-function ProjectCard({ project }: { project: any }) {
-  return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <StatusBadge status={project.status} />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="-mr-2 -mt-2">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/projects/${project.id}`}>View Project</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Untrack Project</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <Link href={`/projects/${project.id}`} className="hover:underline">
-          <CardTitle className="text-lg line-clamp-1">{project.title}</CardTitle>
-        </Link>
-        <CardDescription className="line-clamp-1">Professor: {project.professor}</CardDescription>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{project.progress}%</span>
-            </div>
-            <Progress value={project.progress} className="h-2" />
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="pt-2 text-xs text-muted-foreground border-t">{project.lastActivity}</CardFooter>
-    </Card>
-  )
-}
+import { useAuth } from "../../hooks/useAuth"
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    return <div>Please log in to access the dashboard.</div>
+  }
+
+  // Mock additional user data for display
+  const userWithDetails = {
+    ...user,
+    department: "Computer Science",
+    joinDate: "2023-01-15",
+  }
+
+  // Mock projects data
+  const myProjects = [
+    {
+      id: "1",
+      title: "Machine Learning Algorithm Comparison",
+      status: "in-progress",
+      deadline: "2025-06-15",
+      progress: 65,
+      professor: "Dr. Williams",
+      lastActivity: "Sarah posted an update 2 days ago",
+    },
+    {
+      id: "4",
+      title: "Mobile App Development for Campus Services",
+      status: "in-progress",
+      deadline: "2025-06-30",
+      progress: 45,
+      professor: "Dr. Garcia",
+      lastActivity: "David uploaded new files 3 days ago",
+    },
+    {
+      id: "6",
+      title: "Cloud Infrastructure Deployment",
+      status: "pending",
+      deadline: "2025-08-01",
+      progress: 5,
+      professor: "Dr. Garcia",
+      lastActivity: "Project created 1 week ago",
+    },
+  ]
+
+  const trackedProjects = [
+    {
+      id: "2",
+      title: "Web Application Security Analysis",
+      status: "pending",
+      deadline: "2025-07-01",
+      progress: 10,
+      professor: "Dr. Garcia",
+      lastActivity: "Michael added team members 5 days ago",
+    },
+    {
+      id: "3",
+      title: "Database Optimization Techniques",
+      status: "completed",
+      deadline: "2025-05-20",
+      progress: 100,
+      professor: "Dr. Williams",
+      lastActivity: "Project completed 1 week ago",
+    },
+    {
+      id: "5",
+      title: "Natural Language Processing Research",
+      status: "in-progress",
+      deadline: "2025-07-15",
+      progress: 30,
+      professor: "Dr. Williams",
+      lastActivity: "Olivia posted an update 1 day ago",
+    },
+  ]
+
+  // Recent activity
+  const recentActivity = [
+    {
+      id: "a1",
+      type: "update",
+      project: "Machine Learning Algorithm Comparison",
+      user: "Sarah Johnson",
+      action: "posted an update",
+      time: "2 days ago",
+    },
+    {
+      id: "a2",
+      type: "comment",
+      project: "Natural Language Processing Research",
+      user: "Dr. Williams",
+      action: "commented on an update",
+      time: "1 day ago",
+    },
+    {
+      id: "a3",
+      type: "status",
+      project: "Database Optimization Techniques",
+      user: "Emily Rodriguez",
+      action: "marked the project as completed",
+      time: "1 week ago",
+    },
+    {
+      id: "a4",
+      type: "member",
+      project: "Web Application Security Analysis",
+      user: "Michael Chen",
+      action: "added new members",
+      time: "5 days ago",
+    },
+    {
+      id: "a5",
+      type: "file",
+      project: "Mobile App Development for Campus Services",
+      user: "David Kim",
+      action: "uploaded new files",
+      time: "3 days ago",
+    },
+  ]
+
+  // Status badge component
+  function StatusBadge({ status }: { status: string }) {
+    switch (status) {
+      case "completed":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            <CheckCircle2 className="mr-1 h-3 w-3" />
+            Completed
+          </Badge>
+        )
+      case "in-progress":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            <Clock4 className="mr-1 h-3 w-3" />
+            In Progress
+          </Badge>
+        )
+      case "pending":
+        return (
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+            <AlertCircle className="mr-1 h-3 w-3" />
+            Pending
+          </Badge>
+        )
+      default:
+        return <Badge>{status}</Badge>
+    }
+  }
+
+  // Project card component
+  function ProjectCard({ project }: { project: any }) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <StatusBadge status={project.status} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="-mr-2 -mt-2">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/projects/${project.id}`}>View Project</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Untrack Project</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <Link href={`/projects/${project.id}`} className="hover:underline">
+            <CardTitle className="text-lg line-clamp-1">{project.title}</CardTitle>
+          </Link>
+          <CardDescription className="line-clamp-1">Professor: {project.professor}</CardDescription>
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progress</span>
+                <span>{project.progress}%</span>
+              </div>
+              <Progress value={project.progress} className="h-2" />
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="pt-2 text-xs text-muted-foreground border-t">{project.lastActivity}</CardFooter>
+      </Card>
+    )
+  }
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {user.name}</p>
+            <p className="text-muted-foreground">Welcome back, {userWithDetails.name}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon">
@@ -263,21 +273,21 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center text-center">
               <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                <AvatarImage src={userWithDetails.avatar || "/placeholder.svg"} alt={userWithDetails.name} />
                 <AvatarFallback>JD</AvatarFallback>
               </Avatar>
-              <h2 className="text-xl font-bold">{user.name}</h2>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
-              <Badge className="mt-2">{user.role}</Badge>
+              <h2 className="text-xl font-bold">{userWithDetails.name}</h2>
+              <p className="text-sm text-muted-foreground">{userWithDetails.email}</p>
+              <Badge className="mt-2">{userWithDetails.role}</Badge>
 
               <div className="w-full mt-6 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Department:</span>
-                  <span className="font-medium">{user.department}</span>
+                  <span className="font-medium">{userWithDetails.department}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Joined:</span>
-                  <span className="font-medium">{new Date(user.joinDate).toLocaleDateString()}</span>
+                  <span className="font-medium">{new Date(userWithDetails.joinDate).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Projects:</span>
@@ -390,3 +400,7 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+
+
+

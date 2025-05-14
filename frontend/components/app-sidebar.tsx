@@ -2,8 +2,9 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Home, FolderKanban, User, LogOut, Search, Settings,Users,Shield } from "lucide-react"
+import { Home, FolderKanban, User, LogOut, Search, Settings, Users, Shield, Sun, Moon } from "lucide-react"
 import { useAuth } from "../hooks/useAuth"
+import { useTheme } from "next-themes"
 
 import {
   Sidebar,
@@ -27,6 +28,7 @@ import { Badge } from "./ui/badge"
 export function AppSidebar() {
   const pathname = usePathname()
   const { user, logout,loading } = useAuth()
+  const {theme,setTheme} = useTheme()
 
   const isActive = (path: string) => {
     return pathname === path
@@ -158,24 +160,34 @@ export function AppSidebar() {
 
 
       </SidebarContent>
-      {user && (
-        <SidebarFooter className="border-t p-2">
-          <div className="flex items-center gap-2 p-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user.avatar || "/placeholder-user.jpg"} alt={user.name} />
-              <AvatarFallback>{user.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{user.name}</span>
-              <span className="text-xs text-muted-foreground">{user.role}</span>
-            </div>
-            <Button variant="ghost" size="icon" className="ml-auto" onClick={logout}>
-              <LogOut className="h-4 w-4" />
-              <span className="sr-only">Log out</span>
-            </Button>
-          </div>
-        </SidebarFooter>
-      )}
+      <SidebarFooter className="border-t p-2">
+        <div className="flex items-center gap-2 p-2">
+          {user && (
+            <>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user.avatar || "/placeholder-user.jpg"} alt={user.name} />
+                <AvatarFallback>{user.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{user.name}</span>
+                <span className="text-xs text-muted-foreground">{user.role}</span>
+              </div>
+              <Button variant="ghost" size="icon" className="ml-auto" onClick={logout}>
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Log out</span>
+              </Button>
+            </>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }

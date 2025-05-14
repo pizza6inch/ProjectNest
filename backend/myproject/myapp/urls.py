@@ -9,4 +9,8 @@ urlpatterns = [
     path('api/create_user', UserListAPIView.as_view({'post': 'create_user'}), name='user-list'),
     path('api/update_user/<str:pk>', UserListAPIView.as_view({'put': 'update_user'}), name='user-list'),
     path('api/delete_user/<str:pk>', UserListAPIView.as_view({'delete': 'delete_user'}), name='user-list'),
+    
+    # progress api
+    path('api/get_progress', ProjectProgressAPIView.as_view({'get': 'myProgress'}), name='project-progress'),
+    path('api/create_progress', ProjectProgressAPIView.as_view({'post': 'createProgress'}), name='project-progress'),
 ]

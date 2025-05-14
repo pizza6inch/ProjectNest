@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Home, FolderKanban, User, LogOut, Search, Settings } from "lucide-react"
+import { Home, FolderKanban, User, LogOut, Search, Settings,Users,Shield } from "lucide-react"
 import { useAuth } from "../hooks/useAuth"
 
 import {
@@ -17,18 +17,22 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarSeparator
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "./ui/badge"
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const { user, logout,loading } = useAuth()
 
   const isActive = (path: string) => {
     return pathname === path
   }
+
+  const isAdmin = (user?.role === "admin") as boolean
 
   return (
     <Sidebar>
@@ -60,22 +64,12 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {user && (user.role === "student" || user.role === "professor") && (
+              {user && (user.role === "student" || user.role === "professor" || user.role === 'admin') && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
                     <Link href="/dashboard">
                       <User className="h-4 w-4" />
                       <span>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-              {user && user.role === "admin" && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive("/admin")}>
-                    <Link href="/admin">
-                      <Settings className="h-4 w-4" />
-                      <span>Admin Dashboard</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -132,6 +126,37 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+
+        {isAdmin && (
+          <>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>
+                <span className="flex items-center gap-2">
+                  Admin
+                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                    Admin Only
+                  </Badge>
+                </span>
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/admin")}>
+                      <Link href="/admin">
+                        <Shield className="h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
+
+
       </SidebarContent>
       {user && (
         <SidebarFooter className="border-t p-2">

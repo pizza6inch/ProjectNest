@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework import status, viewsets
+from rest_framework import status as st, viewsets
 from django.core.paginator import Paginator
 
 from django.db.models import Q
@@ -11,7 +11,7 @@ class ProjectListAPIView(viewsets.ModelViewSet):
     # 查詢所有專案
     @action(detail=False, methods=["get"])
     def get_projects(self, request):
-        status_filter = request.query_params.get("status_filter")
+        status = request.query_params.get("status")
         keyword = request.query_params.get("keyword", "")
         sort_by = request.query_params.get("sortBy", "project_id")
         page = int(request.query_params.get("page", 1))
@@ -20,8 +20,8 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         projects = Project.objects.all()
 
         # 過濾 status
-        if status_filter in ["done", "pending"]:
-            projects = projects.filter(status=status_filter)
+        if status in ["done", "pending"]:
+            projects = projects.filter(status=status)
 
         # 關鍵字模糊搜尋 title 和 description
         if keyword:
@@ -35,7 +35,7 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         else:
             return Response(
                 {"error": "Please enter a valid field."},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=st.HTTP_400_BAD_REQUEST,
             )
 
         # 分頁
@@ -50,5 +50,15 @@ class ProjectListAPIView(viewsets.ModelViewSet):
                 "pageSize": page_size,
                 "results": serializer.data,
             },
-            status=status.HTTP_200_OK,
+            status=st.HTTP_200_OK,
         )
+    
+    # 新增專案
+    @action(detail=False, methods=["post"])
+    def create_project(self, request):
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=st.HTTP_201_CREATED)
+        return Response(serializer.errors, status=st.HTTP_400_BAD_REQUEST)
+    

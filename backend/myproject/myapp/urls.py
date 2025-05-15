@@ -13,7 +13,7 @@ urlpatterns = [
     # project api
     path('api/get_projects', ProjectListAPIView.as_view({'get': 'get_projects'}), name='project-list'),
     # path('api/get_project_by_id/<str:pk>', ProjectListAPIView.as_view({'get': 'get_project_by_id'}), name='project-list'),
-    # path('api/create_project', ProjectListAPIView.as_view({'post': 'create_project'}), name='project-list'),
+    path('api/create_project', ProjectListAPIView.as_view({'post': 'create_project'}), name='project-list'),
     # path('api/update_project/<str:pk>', ProjectListAPIView.as_view({'put': 'update_project'}), name='project-list'),
     # path('api/delete_project/<str:pk>', ProjectListAPIView.as_view({'delete': 'delete_project'}), name='project-list'),
     

@@ -5,7 +5,7 @@ class User(models.Model):
     user_id = models.CharField(primary_key=True, max_length=10)
 
     # 姓名
-    name = models.CharField(max_length=10)
+    name = models.CharField(max_length=50)
 
     # 電子郵件
     email = models.EmailField(unique=True)
@@ -41,7 +41,8 @@ class Project(models.Model):
 
     # 專案狀態 : 完成、進行中
     status = models.CharField(
-        max_length=10, choices=[("done", "Done"), ("pending", "Pending")]
+        max_length=20,
+        choices=[("done", "Done"), ("in_progress", "In Progress"), ("pending", "Pending")],
     )
 
     # 是否開放檢索

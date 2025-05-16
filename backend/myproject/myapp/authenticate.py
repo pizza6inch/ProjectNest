@@ -13,3 +13,11 @@ def IsJwtTokenValid(request):
         return False, "Token has expired"
     except jwt.InvalidTokenError:
         return False, "Invalid token"
+
+def generateJwtToken(user_id, role):
+    payload = {
+        "user_id": user_id,
+        "role": role,
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+    return token

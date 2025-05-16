@@ -84,3 +84,8 @@ class UserListAPIView(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
+
+    @action(detail=False, methods=["get"])
+    def totalUsers(self, request):
+        totalUserCount = User.objects.count()
+        return Response({"total_user_count": totalUserCount}, status=status.HTTP_200_OK)

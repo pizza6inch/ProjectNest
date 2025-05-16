@@ -62,3 +62,10 @@ class ProjectListAPIView(viewsets.ModelViewSet):
             return Response(serializer.data, status=st.HTTP_201_CREATED)
         return Response(serializer.errors, status=st.HTTP_400_BAD_REQUEST)
     
+    @action(detail=True, methods=["get"])
+    def totalProjects(self, request):
+        
+        status = request.query_params.get("status")
+
+        total_projects = Project.objects.filter(status=status).count()
+        return Response({"total_projects": total_projects}, status=st.HTTP_200_OK)

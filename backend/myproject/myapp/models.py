@@ -5,7 +5,7 @@ class User(models.Model):
     user_id = models.CharField(primary_key=True, max_length=10)
 
     # 姓名
-    name = models.CharField(max_length=10)
+    name = models.CharField(max_length=50)
 
     # 電子郵件
     email = models.EmailField(unique=True)

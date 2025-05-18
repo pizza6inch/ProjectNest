@@ -69,3 +69,26 @@ class ProjectListAPIView(viewsets.ModelViewSet):
 
         total_projects = Project.objects.filter(status=status).count()
         return Response({"total_projects": total_projects}, status=st.HTTP_200_OK)
+    
+    # 更新專案
+    @action(detail=True, methods=["put"])
+    def update_project(self, request, pk=None):
+        try:
+            project = Project.objects.get(project_id=pk)
+            serializer = ProjectSerializer(project, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=st.HTTP_200_OK)
+            return Response(serializer.errors, status=st.HTTP_400_BAD_REQUEST)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found"}, status=404)
+        
+    # 刪除專案
+    @action(detail=True, methods=["delete"])   
+    def delete_project(self, request, pk=None):
+        try:
+            project = Project.objects.get(project_id=pk)
+            project.delete()
+            return Response(status=st.HTTP_204_NO_CONTENT)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found"}, status=404)

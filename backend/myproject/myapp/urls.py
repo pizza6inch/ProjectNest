@@ -22,7 +22,9 @@ urlpatterns = [
     # progress api
     path('api/get_progress', ProjectProgressAPIView.as_view({'get': 'myProgress'}), name='project-progress'),
     path('api/create_progress', ProjectProgressAPIView.as_view({'post': 'createProgress'}), name='project-progress'),
-    
+    path('api/update_progress', ProjectProgressAPIView.as_view({'put': 'updateProgress'}), name='project-progress'),
+    path('api/delete_progress/<str:progressId>', ProjectProgressAPIView.as_view({'delete': 'deleteProgress'}), name='project-progress'),
+
     # login api
     path('api/login', login, name='login'),
 ]

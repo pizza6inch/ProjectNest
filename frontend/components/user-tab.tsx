@@ -1,24 +1,11 @@
 "use client";
-import React from "react";
+import React, { FormEvent } from "react";
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import {
-  Search,
-  MoreHorizontal,
-  Trash2,
-  PencilLine,
-  Eye,
-  UserPlus,
-} from "lucide-react";
+
+import { Search, MoreHorizontal, Trash2, PencilLine, UserPlus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
@@ -28,24 +15,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -60,8 +33,9 @@ import { Label } from "@/components/ui/label";
 import RoleBadge from "@/components/role-badge";
 import Pagination from "./pagination";
 
-import { getUsers } from "@/lib/apiClient";
+import { getUsers, createUser, updateUser, deleteUser } from "@/lib/apiClient";
 import { User, GetUsersResponse } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserTab() {
   const [users, setUsers] = useState<User[]>([]);
@@ -69,33 +43,138 @@ export default function UserTab() {
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [currentUserPage, setCurrentUserPage] = useState(1);
   const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { toast } = useToast();
+
+  // add/edit user form
+  const [userId, setUserId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
 
   const userCount = 60; // Example total user count
 
   const [itemsPerPage] = useState(10); // 10 items per page for tables
 
-  const handleDeleteUser = () => {
-    console.log(`Deleting user with ID: ${selectedItemId}`);
+  const fetchUsers = async () => {
+    try {
+      const response: GetUsersResponse = await getUsers({
+        role: userRoleFilter !== "all" ? userRoleFilter : undefined,
+        page: currentUserPage,
+        pageSize: itemsPerPage,
+      });
+      setUsers(response.results);
+      console.log("Fetched users:", response.results);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const handleAddUser = async () => {
+    if (!userId || !name || !email || !password || !role) {
+      toast({ title: "Add User Error", description: "All fields are required" });
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast({ title: "Add User Error", description: "Invalid email format" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await createUser({ user_id: userId, name, email, password, role });
+
+      setIsAddUserDialogOpen(false);
+      toast({ title: "Add User Success" });
+      fetchUsers();
+    } catch (err) {
+      toast({ title: "Add User Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditUser = async () => {
+    if (!userId || !name || !email || !password || !role) {
+      toast({ title: "Edit User Error", description: "All fields are required" });
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast({ title: "Edit User Error", description: "Invalid email format" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await updateUser({ user_id: userId, name, email, password, role });
+
+      toast({ title: "Edit User Success" });
+      setIsEditUserDialogOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (err) {
+      toast({ title: "Edit User Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    console.log(`Deleting user with ID: ${selectedUser?.user_id}`);
+
+    if (!selectedUser) return;
+
+    try {
+      setIsLoading(true);
+
+      await deleteUser(selectedUser?.user_id);
+
+      toast({ title: "Delete User Success" });
+      setIsDeleteUserDialogOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (err) {
+      toast({ title: "Delete User Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+
     setIsDeleteUserDialogOpen(false);
-    setSelectedItemId(null);
+    setSelectedUser(null);
     // In a real app, this would call an API to delete the user
   };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response: GetUsersResponse = await getUsers({
-          role: userRoleFilter !== "all" ? userRoleFilter : undefined,
-          page: currentUserPage,
-          pageSize: itemsPerPage,
-        });
-        setUsers(response.results);
-        console.log("Fetched users:", response.results);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
+    setUserId("");
+    setName("");
+    setEmail("");
+    setRole("");
+    setPassword("");
+  }, [isAddUserDialogOpen]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      setUserId(selectedUser?.user_id);
+      setName(selectedUser?.name);
+      setEmail(selectedUser?.email);
+      setRole(selectedUser?.role);
+      setPassword("");
+    }
+  }, [selectedUser]);
+
+  useEffect(() => {
+
 
     fetchUsers();
   }, [userRoleFilter, currentUserPage, itemsPerPage]);
@@ -111,9 +190,7 @@ export default function UserTab() {
         <Card>
           <CardHeader>
             <CardTitle>User Management</CardTitle>
-            <CardDescription>
-              View and manage all users in the system
-            </CardDescription>
+            <CardDescription>View and manage all users in the system</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -128,22 +205,19 @@ export default function UserTab() {
                 />
               </div>
               <div className="flex gap-2 w-full sm:w-auto">
-                <Select
-                  value={userRoleFilter}
-                  onValueChange={setUserRoleFilter}
-                >
+                <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by role" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    {/* <SelectItem value="admin">Admin</SelectItem> */}
                     <SelectItem value="professor">Professor</SelectItem>
                     <SelectItem value="student">Student</SelectItem>
                   </SelectContent>
                 </Select>
                 {/* add user dialog */}
-                <Dialog>
+                <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <UserPlus className="mr-2 h-4 w-4" />
@@ -153,47 +227,65 @@ export default function UserTab() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Add New User</DialogTitle>
-                      <DialogDescription>
-                        Create a new user account in the system.
-                      </DialogDescription>
+                      <DialogDescription>Create a new user account in the system.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="user_id" className="text-right">
+                          Student_ID
+                        </Label>
+                        <Input id="user_id" onChange={(e) => setUserId(e.target.value)} className="col-span-3" />
+                      </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
                           Name
                         </Label>
-                        <Input id="name" className="col-span-3" />
+                        <Input id="name" className="col-span-3" onChange={(e) => setName(e.target.value)} />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="email" className="text-right">
                           Email
                         </Label>
-                        <Input id="email" type="email" className="col-span-3" />
+                        <Input
+                          id="email"
+                          type="email"
+                          className="col-span-3"
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="password" className="text-right">
+                          Password
+                        </Label>
+                        <Input id="password" className="col-span-3" onChange={(e) => setPassword(e.target.value)} />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="role" className="text-right">
                           Role
                         </Label>
-                        <Select>
+                        <Select onValueChange={(value) => setRole(value)}>
                           <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
+                            {/* <SelectItem value="admin">Admin</SelectItem> */}
                             <SelectItem value="professor">Professor</SelectItem>
                             <SelectItem value="student">Student</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="department" className="text-right">
-                          Department
-                        </Label>
-                        <Input id="department" className="col-span-3" />
-                      </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit">Create User</Button>
+                      {isLoading ? (
+                        <Button disabled>
+                          <Loader2 className="animate-spin" />
+                          Creating...
+                        </Button>
+                      ) : (
+                        <Button onClick={handleAddUser} type="submit">
+                          Create User
+                        </Button>
+                      )}
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -228,9 +320,7 @@ export default function UserTab() {
                             </Avatar>
                             <div>
                               <div className="font-medium">{user.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {user.email}
-                              </div>
+                              <div className="text-xs text-muted-foreground">{user.email}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -249,14 +339,19 @@ export default function UserTab() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setIsEditUserDialogOpen(true);
+                                }}
+                              >
                                 <PencilLine className="mr-2 h-4 w-4" />
                                 Edit User
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => {
-                                  setSelectedItemId(user.user_id);
+                                  setSelectedUser(user);
                                   setIsDeleteUserDialogOpen(true);
                                 }}
                               >
@@ -280,170 +375,103 @@ export default function UserTab() {
             </div>
           </CardContent>
         </Card>
-        <Pagination
-          total={60}
-          page={currentUserPage}
-          pageSize={itemsPerPage}
-          onPageChange={setCurrentUserPage}
-        />
-        {/* {users.length > 0 && (
-          <div className="flex justify-center mt-6">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentUserPage((prev) => Math.max(prev - 1, 1))
-                }
-                disabled={currentUserPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="flex items-center space-x-1">
-                {(() => {
-                  const totalPages = Math.ceil(users.length / itemsPerPage);
-                  const pages = [];
-
-                  if (totalPages <= 5) {
-                    // Less than 5 pages, show all
-                    for (let i = 1; i <= totalPages; i++) {
-                      pages.push(
-                        <Button
-                          key={i}
-                          variant={
-                            currentUserPage === i ? "default" : "outline"
-                          }
-                          size="sm"
-                          className="w-9"
-                          onClick={() => setCurrentUserPage(i)}
-                        >
-                          {i}
-                        </Button>
-                      );
-                    }
-                  } else {
-                    // More than 5 pages, show current page and neighbors
-                    let startPage = Math.max(1, currentUserPage - 2);
-                    const endPage = Math.min(totalPages, startPage + 4);
-
-                    if (endPage - startPage < 4) {
-                      startPage = Math.max(1, endPage - 4);
-                    }
-
-                    // First page
-                    if (startPage > 1) {
-                      pages.push(
-                        <Button
-                          key={1}
-                          variant={
-                            currentUserPage === 1 ? "default" : "outline"
-                          }
-                          size="sm"
-                          className="w-9"
-                          onClick={() => setCurrentUserPage(1)}
-                        >
-                          1
-                        </Button>
-                      );
-
-                      if (startPage > 2) {
-                        pages.push(
-                          <span key="ellipsis1" className="mx-1">
-                            ...
-                          </span>
-                        );
-                      }
-                    }
-
-                    // Page numbers
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(
-                        <Button
-                          key={i}
-                          variant={
-                            currentUserPage === i ? "default" : "outline"
-                          }
-                          size="sm"
-                          className="w-9"
-                          onClick={() => setCurrentUserPage(i)}
-                        >
-                          {i}
-                        </Button>
-                      );
-                    }
-
-                    // Last page
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1) {
-                        pages.push(
-                          <span key="ellipsis2" className="mx-1">
-                            ...
-                          </span>
-                        );
-                      }
-
-                      pages.push(
-                        <Button
-                          key={totalPages}
-                          variant={
-                            currentUserPage === totalPages
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          className="w-9"
-                          onClick={() => setCurrentUserPage(totalPages)}
-                        >
-                          {totalPages}
-                        </Button>
-                      );
-                    }
-                  }
-
-                  return pages;
-                })()}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentUserPage((prev) =>
-                    Math.min(prev + 1, Math.ceil(users.length / itemsPerPage))
-                  )
-                }
-                disabled={
-                  currentUserPage === Math.ceil(users.length / itemsPerPage)
-                }
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )} */}
+        <Pagination total={60} page={currentUserPage} pageSize={itemsPerPage} onPageChange={setCurrentUserPage} />
       </TabsContent>
 
-      <Dialog
-        open={isDeleteUserDialogOpen}
-        onOpenChange={setIsDeleteUserDialogOpen}
-      >
+      {/* edit user dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Edit User {selectedUser?.name}(user_id:{selectedUser?.user_id}) in the system.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="user_id" className="text-right">
+                Student_ID
+              </Label>
+              <Input id="user_id" value={userId} onChange={(e) => setUserId(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input id="name" value={name} className="col-span-3" onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                value={email}
+                type="email"
+                className="col-span-3"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input id="password" className="col-span-3" onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">
+                Role
+              </Label>
+              <Select value={role} onValueChange={(value) => setRole(value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* <SelectItem value="admin">Admin</SelectItem> */}
+                  <SelectItem value="professor">Professor</SelectItem>
+                  <SelectItem value="student">Student</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Saving Changes...
+              </Button>
+            ) : (
+              <Button onClick={handleEditUser} type="submit">
+                Save Changes
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* delete user dialog */}
+      <Dialog open={isDeleteUserDialogOpen} onOpenChange={setIsDeleteUserDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be
-              undone.
+              Are you sure you want to delete this user(user_id:{selectedUser?.user_id})? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteUserDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsDeleteUserDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteUser}>
-              Delete
-            </Button>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Deleting...
+              </Button>
+            ) : (
+              <Button variant="destructive" onClick={handleDeleteUser}>
+                Delete
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

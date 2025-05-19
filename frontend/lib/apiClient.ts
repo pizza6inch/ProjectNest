@@ -57,9 +57,7 @@ apiClient.interceptors.response.use(
 // }
 
 // Get Users
-export const getUsers = async (
-  params: GetUsersParams = {}
-): Promise<GetUsersResponse> => {
+export const getUsers = async (params: GetUsersParams = {}): Promise<GetUsersResponse> => {
   const response = await apiClient.get<GetUsersResponse>("/get_users", {
     params,
   });
@@ -69,15 +67,32 @@ export const getUsers = async (
 
 // Create a new user
 export const createUser = async (userData: {
+  user_id: string;
   name: string;
   email: string;
   password: string;
   role: string;
-}): Promise<User> => {
-  const response = await apiClient.post<User>("/users", userData);
+}) => {
+  await apiClient.post("/create_user", userData);
   console.log("createUser API");
+};
 
-  return response.data;
+// Update a user
+
+export const updateUser = async (userData: {
+  user_id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+}) => {
+  await apiClient.put(`/update_user/${userData.user_id}`, userData);
+  console.log("updateUser API");
+};
+
+export const deleteUser = async (user_id: string) => {
+  await apiClient.delete(`/delete_user/${user_id}`);
+  console.log("deleteUser API");
 };
 
 // Get projects list

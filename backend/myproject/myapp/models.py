@@ -63,7 +63,7 @@ class ProjectProgress(models.Model):
 
     # 進度狀態 : 完成、進行中
     status = models.CharField(
-        max_length=10, choices=[("done", "Done"), ("pending", "Pending")]
+        max_length=20, choices=[("done", "Done"), ("pending", "Pending"), ("in_progress", "In Progress")],
     )
     # 預估完成時間
     estimated_time = models.DateTimeField()

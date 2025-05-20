@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class User(models.Model):
     # 學號、教師工號
     user_id = models.CharField(primary_key=True, max_length=10)
@@ -29,6 +30,7 @@ class User(models.Model):
     def __str__(self):
         return f"{self.name} {self.user_id} ({self.email})"
 
+
 class Project(models.Model):
     # 自動遞增的 id
     project_id = models.AutoField(primary_key=True)
@@ -42,7 +44,11 @@ class Project(models.Model):
     # 專案狀態 : 完成、進行中
     status = models.CharField(
         max_length=20,
-        choices=[("done", "Done"), ("in_progress", "In Progress"), ("pending", "Pending")],
+        choices=[
+            ("done", "Done"),
+            ("in_progress", "In Progress"),
+            ("pending", "Pending"),
+        ],
     )
 
     # 是否開放檢索
@@ -54,6 +60,7 @@ class Project(models.Model):
     # 更新時間
     update_at = models.DateTimeField(auto_now=True)  # 自動記錄更新時間
 
+
 class ProjectProgress(models.Model):
     # 自動遞增的 id
     progress_id = models.AutoField(primary_key=True)
@@ -63,7 +70,12 @@ class ProjectProgress(models.Model):
 
     # 進度狀態 : 完成、進行中
     status = models.CharField(
-        max_length=10, choices=[("done", "Done"), ("pending", "Pending")]
+        max_length=20,
+        choices=[
+            ("done", "Done"),
+            ("pending", "Pending"),
+            ("in_progress", "In Progress"),
+        ],
     )
     # 預估完成時間
     estimated_time = models.DateTimeField()
@@ -76,6 +88,7 @@ class ProjectProgress(models.Model):
 
     # 更新時間
     update_at = models.DateTimeField(auto_now=True)  # 自動記錄更新時間
+
 
 class Comment(models.Model):
     # 自動遞增的 id
@@ -95,6 +108,7 @@ class Comment(models.Model):
 
     # 更新時間
     update_at = models.DateTimeField(auto_now=True)  # 自動記錄更新時間
+
 
 class ProjectUser(models.Model):
     # FK 連結到 User id

@@ -56,6 +56,9 @@ apiClient.interceptors.response.use(
 //   avatar?: string
 // }
 
+// get userCount
+// export const getTotalUsers  = async ():Promise<{"total_user_count"}>
+
 // Get Users
 export const getUsers = async (params: GetUsersParams = {}): Promise<GetUsersResponse> => {
   const response = await apiClient.get<GetUsersResponse>("/get_users", {

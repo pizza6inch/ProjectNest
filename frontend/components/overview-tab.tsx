@@ -3,14 +3,7 @@ import React, { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TabsContent } from "@/components/ui/tabs";
 import RoleBadge from "@/components/role-badge";
@@ -83,12 +76,10 @@ const projects = [
   },
 ];
 
-export default function OverviewTab({
-  setActiveTab,
-}: {
-  setActiveTab: (tab: string) => void;
-}) {
+export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const [users, setUsers] = useState<User[]>([]);
+
+  const { userCount, projectCount, completedProjects, activeProjects, setStats } = useDashboardStats();
   // const [projects, setProjects] = useState(projects);
 
   // get users data from API
@@ -153,9 +144,7 @@ export default function OverviewTab({
         {stats.map((stat, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -170,9 +159,7 @@ export default function OverviewTab({
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Recent Users</CardTitle>
-            <CardDescription>
-              Recently active users in the system
-            </CardDescription>
+            <CardDescription>Recently active users in the system</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -180,19 +167,12 @@ export default function OverviewTab({
                 users.map((user) => (
                   <div key={user.user_id} className="flex items-center gap-4">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={user.image_url || "/placeholder.svg"}
-                        alt={user.name}
-                      />
+                      <AvatarImage src={user.image_url || "/placeholder.svg"} alt={user.name} />
                       {/* <AvatarFallback>{user.initials}</AvatarFallback> */}
                     </Avatar>
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                     <RoleBadge role={user.role} />
                   </div>
@@ -200,11 +180,7 @@ export default function OverviewTab({
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setActiveTab("users")}
-            >
+            <Button variant="outline" className="w-full" onClick={() => setActiveTab("users")}>
               View All Users
             </Button>
           </CardFooter>
@@ -233,11 +209,7 @@ export default function OverviewTab({
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setActiveTab("projects")}
-            >
+            <Button variant="outline" className="w-full" onClick={() => setActiveTab("projects")}>
               View All Projects
             </Button>
           </CardFooter>

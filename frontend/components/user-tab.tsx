@@ -36,6 +36,7 @@ import Pagination from "./pagination";
 import { getUsers, createUser, updateUser, deleteUser } from "@/lib/apiClient";
 import { User, GetUsersResponse } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useDashboardStats } from "@/hooks/userContext";
 
 export default function UserTab() {
   const [users, setUsers] = useState<User[]>([]);
@@ -52,6 +53,8 @@ export default function UserTab() {
 
   const { toast } = useToast();
 
+  const { setStats } = useDashboardStats();
+
   // add/edit user form
   const [userId, setUserId] = useState("");
   const [name, setName] = useState("");
@@ -59,7 +62,7 @@ export default function UserTab() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
 
-  const userCount = 60; // Example total user count
+  // const userCount = 60; // Example total user count
 
   const [itemsPerPage] = useState(10); // 10 items per page for tables
 
@@ -70,7 +73,9 @@ export default function UserTab() {
         page: currentUserPage,
         pageSize: itemsPerPage,
       });
+
       setUsers(response.results);
+      setStats({ userCount: response.total });
       console.log("Fetched users:", response.results);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -174,8 +179,6 @@ export default function UserTab() {
   }, [selectedUser]);
 
   useEffect(() => {
-
-
     fetchUsers();
   }, [userRoleFilter, currentUserPage, itemsPerPage]);
 

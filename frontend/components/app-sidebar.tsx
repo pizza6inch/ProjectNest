@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
-import Link from "next/link"
-import { Home, FolderKanban, User, LogOut, Search, Settings, Users, Shield, Sun, Moon } from "lucide-react"
-import { useAuth } from "../hooks/useAuth"
-import { useTheme } from "next-themes"
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { Home, FolderKanban, User, LogOut, Search, Settings, Users, Shield, Sun, Moon } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { useTheme } from "next-themes";
 
 import {
   Sidebar,
@@ -18,23 +18,23 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  SidebarSeparator
-} from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "./ui/badge"
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "./ui/badge";
 
 export function AppSidebar() {
-  const pathname = usePathname()
-  const { user, logout,loading } = useAuth()
-  const {theme,setTheme} = useTheme()
+  const pathname = usePathname();
+  const { user, logout, loading } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const isActive = (path: string) => {
-    return pathname === path
-  }
+    return pathname === path;
+  };
 
-  const isAdmin = (user?.role === "admin") as boolean
+  const isAdmin = (user?.role === "admin") as boolean;
 
   return (
     <Sidebar>
@@ -46,12 +46,12 @@ export function AppSidebar() {
             <SidebarTrigger />
           </div>
         </div>
-        <div className="px-2 pb-2">
+        {/* <div className="px-2 pb-2">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input type="search" placeholder="Search projects..." className="w-full pl-8" />
           </div>
-        </div>
+        </div> */}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -66,7 +66,7 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {user && (user.role === "student" || user.role === "professor" || user.role === 'admin') && (
+              {user && (user.role === "student" || user.role === "professor" || user.role === "admin") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
                     <Link href="/dashboard">
@@ -100,7 +100,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
+        {/* <SidebarGroup>
           <SidebarGroupLabel>Filters</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -127,8 +127,7 @@ export function AppSidebar() {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
-
+        </SidebarGroup> */}
 
         {isAdmin && (
           <>
@@ -157,8 +156,6 @@ export function AppSidebar() {
             </SidebarGroup>
           </>
         )}
-
-
       </SidebarContent>
       <SidebarFooter className="border-t p-2">
         <div className="flex items-center gap-2 p-2">
@@ -166,7 +163,12 @@ export function AppSidebar() {
             <>
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatar || "/placeholder-user.jpg"} alt={user.name} />
-                <AvatarFallback>{user.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+                <AvatarFallback>
+                  {user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{user.name}</span>
@@ -189,5 +191,5 @@ export function AppSidebar() {
         </div>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

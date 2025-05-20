@@ -35,11 +35,10 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         if not valid:
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
 
-        projectId = payload.get("project_id")
-        estimatedTime = payload.get("estimated_time")
-        progressNote = payload.get("progress_note")
-        
-        
+        projectId = request.data.get("project_id")
+        estimatedTime = request.data.get("estimated_time")
+        progressNote = request.data.get("progress_note")
+
         if not projectId or not estimatedTime or not progressNote:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -53,7 +52,7 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
             "progress_note" : progressNote
         }
         serializer = ProjectProgressSerializer(data=newProgressdata)
-        
+
         if not serializer.is_valid():
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -67,8 +66,8 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         valid, payload = IsJwtTokenValid(request)
         if not valid:
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        progressId = payload.get("progress_id")
+
+        progressId = request.data.get("progress_id")
 
         if not progressId:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
@@ -76,10 +75,10 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         try:
             progress = ProjectProgress.objects.get(progress_id=progressId)
 
-            progress.estimated_time = payload.get("estimated_time")
-            progress.progress_note = payload.get("progress_note")
-            progress.status = payload.get("status")
-            progress.progress_note = payload.get("progress_note")
+            progress.estimated_time = request.data.get("estimated_time")
+            progress.progress_note = request.data.get("progress_note")
+            progress.status = request.data.get("status")
+            progress.progress_note = request.data.get("progress_note")
             progress.save()
 
         except ProjectProgress.DoesNotExist:

@@ -27,4 +27,7 @@ urlpatterns = [
 
     # login api
     path('api/login', login, name='login'),
+
+    # project user api
+    path('api/my_projects/<str:pk>', ProjectUserAPIView.as_view({'get': 'my_projects'}), name='project-user'),
 ]

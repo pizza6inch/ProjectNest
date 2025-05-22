@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework import status, viewsets
 from django.core.paginator import Paginator
 
+from django.db.models import Q
 from myapp.models import User
 from myapp.serializers import UserSerializer
 
@@ -12,6 +13,7 @@ class UserListAPIView(viewsets.ModelViewSet):
     def get_users(self, request):
 
         role = request.query_params.get("role")
+        keyword = request.query_params.get("keyword", "")
         sort_by = request.query_params.get("sortBy", "user_id")
         page = int(request.query_params.get("page", 1))
         page_size = int(request.query_params.get("pageSize", 10))
@@ -19,6 +21,14 @@ class UserListAPIView(viewsets.ModelViewSet):
         users = User.objects.all()
         if role:
             users = users.filter(role=role)
+
+        # 模糊查詢 user_id、name、email
+        if keyword:
+            users = users.filter(
+                Q(user_id__icontains=keyword) |
+                Q(name__icontains=keyword) |
+                Q(email__icontains=keyword)
+            )
 
         if sort_by in [f.name for f in User._meta.fields if f.name != "password"]:
             users = users.order_by(sort_by)

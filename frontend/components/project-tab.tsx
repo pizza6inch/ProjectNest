@@ -76,6 +76,22 @@ import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardStats } from "@/hooks/dashBoardStatsContext";
 
+const get_member_by_id = async (memberId) => {
+  // Simulate delay
+  await new Promise((r) => setTimeout(r, 500));
+  // Dummy data based on memberId
+  if (!memberId) throw new Error("Invalid member ID");
+  return {
+    user_id: memberId,
+    name: `Member Name ${memberId}`,
+    email: `${memberId}@school.edu`,
+    role: "student",
+    image_url: `https://api.adorable.io/avatars/285/${memberId}.png`,
+    create_at: new Date().toISOString(),
+    update_at: new Date().toISOString(),
+  };
+};
+
 export default function ProjectTab() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectSearchQuery, setProjectSearchQuery] = useState("");
@@ -87,12 +103,61 @@ export default function ProjectTab() {
   const [isEditProjectDialogOpen, setIsEditProjectDialogOpen] = useState(false);
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  // const [members, setMembers] = useState([""]); // 初始有一个空的 member_id
 
   const [isLoading, setIsLoading] = useState(false);
 
   const { toast } = useToast();
 
   const { setStats, projectCount } = useDashboardStats();
+
+  const [members, setMembers] = useState<
+    {
+      id: string;
+      data: User | null;
+      loading: boolean;
+      error: string | null;
+    }[]
+  >([{ id: "", data: null, loading: false, error: null }]);
+
+  const addMember = () => {
+    setMembers([
+      ...members,
+      { id: "", data: null, loading: false, error: null },
+    ]);
+  };
+
+  const removeMember = (index: number) => {
+    setMembers(members.filter((_, i) => i !== index));
+  };
+
+  const handleMemberChange = (index: number, value: string) => {
+    const newMembers = [...members];
+    newMembers[index].id = value;
+    newMembers[index].data = null;
+    newMembers[index].error = null;
+    setMembers(newMembers);
+  };
+
+  const confirmMemberId = async (index: number) => {
+    const memberId = members[index].id.trim();
+    if (!memberId) return;
+    const newMembers = [...members];
+    newMembers[index].loading = true;
+    newMembers[index].error = null;
+    newMembers[index].data = null;
+    setMembers(newMembers);
+
+    try {
+      const data = await get_member_by_id(memberId);
+      newMembers[index].data = data;
+    } catch (error) {
+      newMembers[index].error = "Member not found";
+    } finally {
+      newMembers[index].loading = false;
+      setMembers([...newMembers]);
+    }
+  };
 
   // add/edit project form
   const [title, setTitle] = useState("");
@@ -273,7 +338,7 @@ export default function ProjectTab() {
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="project_title" className="text-right">
-                          ProjectTitle
+                          Project Title
                         </Label>
                         <Input
                           id="project_title"
@@ -282,46 +347,24 @@ export default function ProjectTab() {
                         />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
+                        <Label htmlFor="description" className="text-right">
                           Description
                         </Label>
                         <Input
-                          id="name"
-                          className="col-span-3"
+                          id="description"
                           onChange={(e) => setDescription(e.target.value)}
-                        />
-                      </div>
-                      {/* <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="email" className="text-right">
-                          Email
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
                           className="col-span-3"
-                          onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="password" className="text-right">
-                          Password
-                        </Label>
-                        <Input
-                          id="password"
-                          className="col-span-3"
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
-                      </div> */}
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="role" className="text-right">
+                        <Label htmlFor="status" className="text-right">
                           Status
                         </Label>
                         <Select onValueChange={(value) => setStatus(value)}>
                           <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select role" />
+                            <SelectValue placeholder="Select Status" />
                           </SelectTrigger>
                           <SelectContent>
-                            {/* <SelectItem value="admin">Admin</SelectItem> */}
                             <SelectItem value="done">Done</SelectItem>
                             <SelectItem value="in_progress">
                               In-Progress
@@ -329,6 +372,62 @@ export default function ProjectTab() {
                             <SelectItem value="pending">Pending</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+
+                      {/* Members input with preview */}
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <Label className="text-right pt-2">Members</Label>
+                        <div className="col-span-3 space-y-4">
+                          {members.map((member, index) => (
+                            <div key={index} className="border rounded p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Input
+                                  placeholder="Enter member ID"
+                                  value={member.id}
+                                  onChange={(e) =>
+                                    handleMemberChange(index, e.target.value)
+                                  }
+                                  className="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={() => confirmMemberId(index)}
+                                  disabled={member.loading}
+                                >
+                                  {member.loading ? "Loading..." : "Confirm"}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  onClick={() => removeMember(index)}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                              {member.error && (
+                                <p className="text-red-600 text-sm">
+                                  {member.error}
+                                </p>
+                              )}
+                              {member.data && (
+                                <div className="bg-gray-50 p-2 rounded text-sm">
+                                  <p>
+                                    <strong>Name:</strong> {member.data.name}
+                                  </p>
+                                  <p>
+                                    <strong>id:</strong> {member.data.user_id}
+                                  </p>
+                                  <p>
+                                    <strong>Email:</strong> {member.data.email}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          <Button type="button" onClick={addMember}>
+                            Add Member
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <DialogFooter>
@@ -338,7 +437,10 @@ export default function ProjectTab() {
                           Creating...
                         </Button>
                       ) : (
-                        <Button onClick={handleAddProject} type="submit">
+                        <Button
+                          onClick={() => handleAddProject()}
+                          type="submit"
+                        >
                           Create Project
                         </Button>
                       )}

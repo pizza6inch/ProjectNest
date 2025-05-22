@@ -24,7 +24,7 @@ def login(request):
     if not check_password(password, user.password):
         return Response({"error": "password incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
 
-    jwtToken = generateJwtToken(user.user_id, user.role)
+    jwtToken = generateJwtToken(user.user_id, user.role,user.name,user.image_url)
 
     reponse = Response(
         {"message": "login successful", "token": jwtToken},

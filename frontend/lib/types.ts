@@ -1,12 +1,12 @@
 // User type example
 export interface User {
-  user_id: string;
-  name: string;
-  email: string;
-  role: string;
+  user_id?: string;
+  name?: string;
+  email?: string;
+  role?: string;
   image_url?: string;
-  create_at: string;
-  update_at: string;
+  create_at?: string;
+  update_at?: string;
 }
 
 export type GetUsersParams = {

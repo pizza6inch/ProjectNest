@@ -1,144 +1,144 @@
-"use client"
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react"
-import { useRouter } from "next/navigation"
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { useRouter } from "next/navigation";
 
-type UserRole = "student" | "professor" | "admin" | null
+import { User } from "@/lib/types";
+import { createUser, getToken } from "@/lib/apiClient";
 
-interface User {
-  id: string
-  name: string
-  email: string
-  role: UserRole
-  avatar?: string
+import { useToast } from "./use-toast";
+
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken {
+  user_id: string;
+  role: string;
+  name: string;
+  email: string;
+  img_url: string;
 }
+
+type UserRole = "student" | "professor" | "admin" | null;
 
 interface AuthContextType {
-  user: User | null
-  login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string, role: UserRole) => Promise<void>
-  logout: () => void
-  loading: boolean
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole
+  ) => Promise<void>;
+  logout: () => void;
+  loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     // On mount, check if user info is stored in localStorage (simulate session)
-    const storedUser = localStorage.getItem("user")
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      setUser(JSON.parse(storedUser));
     } else {
-      setUser(null)
+      setUser(null);
     }
-    setLoading(false)
-  }, [])
+    setLoading(false);
+  }, []);
 
-  const login = async (email: string, password: string) => {
-    setLoading(true)
+  const login = async (student_id: string, password: string) => {
+    setLoading(true);
     try {
-      // Simulate API call to login endpoint
-      // Replace with real API call
-      // Example response:
-      // { id, name, email, role, avatar }
-      const response = await new Promise<User>((resolve, reject) => {
-        setTimeout(() => {
-          // Mock user data based on email for demo
-          if (email === "admin@example.com") {
-            resolve({
-              id: "1",
-              name: "Admin User",
-              email,
-              role: "admin",
-              avatar: "/placeholder-user.jpg",
-            })
-          } else if (email === "professor@example.com") {
-            resolve({
-              id: "2",
-              name: "Professor User",
-              email,
-              role: "professor",
-              avatar: "/placeholder-user.jpg",
-            })
-          } else if (email === "student@example.com") {
-            resolve({
-              id: "3",
-              name: "Student User",
-              email,
-              role: "student",
-              avatar: "/placeholder-user.jpg",
-            })
-          } else {
-            reject(new Error("Invalid email or password"))
-          }
-        }, 1000)
-      })
-      setUser(response)
-      localStorage.setItem("user", JSON.stringify(response))
+      const response = await getToken({ user_id: student_id, password });
 
-      if(response.role === 'admin') router.push("/admin")
-      else{
-        router.push("/dashboard")
+      console.log("Login response:", response);
+      // setUser(response);
+      localStorage.setItem("user", JSON.stringify(response.token));
+      const decodedToken: DecodedToken = jwtDecode(response.token);
+      const userData: User = {
+        user_id: decodedToken.user_id,
+        name: decodedToken.name,
+        role: decodedToken.role,
+        image_url: decodedToken.img_url,
+      };
+      setUser(userData);
+      if (userData.role === "admin") router.push("/admin");
+      else {
+        router.push("/dashboard");
       }
-    } catch (error) {
-      console.error("Login failed", error)
-      throw error
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  const register = async (name: string, email: string, password: string, role: UserRole) => {
-    setLoading(true)
+      toast({
+        title: "Login Success",
+        description: "Welcome back!",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Login failed", error);
+      toast({
+        title: "Login Failed",
+        description: "Invalid credentials. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (
+    student_id: string,
+    name: string,
+    email: string,
+    password: string,
+    role: string
+  ) => {
+    setLoading(true);
     try {
-      // Simulate API call to register endpoint
-      // Replace with real API call
-      const newUser: User = {
-        id: Date.now().toString(),
+      await createUser({
+        user_id: student_id,
         name,
         email,
+        password,
         role,
-        avatar: "/placeholder-user.jpg",
-      }
-      // Simulate success
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setUser(newUser)
-      localStorage.setItem("user", JSON.stringify(newUser))
-      if(newUser.role === 'admin') router.push("/admin")
-        else{
-          router.push("/dashboard")
-        }router.push("/dashboard")
+      });
     } catch (error) {
-      console.error("Registration failed", error)
-      throw error
+      console.error("Registration failed", error);
+      throw error;
     } finally {
-      setLoading(false)
+      await login(student_id, password);
+      setLoading(false);
     }
-  }
+  };
 
   const logout = () => {
-    setUser(null)
-    localStorage.removeItem("user")
-    router.push("/login")
-  }
+    setUser(null);
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  return context
+  return context;
 }

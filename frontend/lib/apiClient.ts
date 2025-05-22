@@ -155,7 +155,23 @@ export const createProject = async (projectData: {
   progress: number;
   professor: string;
   description: string;
+  members: string[];
 }) => {
   await apiClient.post("/create_project", projectData);
   console.log("createProject API");
+};
+
+export const getToken = async ({
+  user_id,
+  password,
+}: {
+  user_id: string;
+  password: string;
+}): Promise<{ message: string; token: string }> => {
+  const response = await apiClient.post("/login", {
+    user_id,
+    password,
+  });
+  console.log("getToken API");
+  return response.data;
 };

@@ -18,10 +18,12 @@ def IsJwtTokenValid(request):
     except jwt.InvalidTokenError:
         return False, "invalid token"
 
-def generateJwtToken(user_id, role):
+def generateJwtToken(user_id, role,name,image_url):
     payload = {
         "user_id": user_id,
         "role": role,
+        "name": name,
+        "image_url": image_url,
     }
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
     return token

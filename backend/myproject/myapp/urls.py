@@ -30,4 +30,5 @@ urlpatterns = [
 
     # project user api
     path('api/my_projects/<str:pk>', ProjectUserAPIView.as_view({'get': 'my_projects'}), name='project-user'),
+    path('api/project_detail/<str:pk>', ProjectUserAPIView.as_view({'get': 'project_detail'}), name='project-user'),
 ]

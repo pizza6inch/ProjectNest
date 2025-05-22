@@ -7,7 +7,7 @@ import {
   MoreHorizontal,
   Trash2,
   PencilLine,
-  UserPlus,
+  Plus,
   Loader2,
 } from "lucide-react";
 
@@ -29,6 +29,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -57,7 +58,11 @@ import {
 import { Label } from "@/components/ui/label";
 
 import RoleBadge from "@/components/role-badge";
+import StatusBadge from "@/components/status-badge";
 import Pagination from "./pagination";
+import { Progress } from "@/components/ui/progress";
+import { Eye } from "lucide-react";
+import Link from "next/link";
 
 import {
   getProjects,
@@ -65,15 +70,16 @@ import {
   updateProject,
   deleteProject,
   Project,
+  GetProjectsResponse,
 } from "@/lib/apiClient";
-import { GetUsersResponse } from "@/lib/types";
+import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardStats } from "@/hooks/dashBoardStatsContext";
 
-export default function UserTab() {
-  const [users, setPorjects] = useState<Project[]>([]);
+export default function ProjectTab() {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [projectSearchQuery, setProjectSearchQuery] = useState("");
-  const [projectRoleFilter, setProjectRoleFilter] = useState("all");
+  const [projectStatusFilter, setProjectStatusFilter] = useState("all");
   const [currentProjectPage, setCurrentProjectPage] = useState(1);
   const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] =
     useState(false);
@@ -86,154 +92,136 @@ export default function UserTab() {
 
   const { toast } = useToast();
 
-  const { setStats } = useDashboardStats();
+  const { setStats, projectCount } = useDashboardStats();
 
   // add/edit project form
-  const [userId, setUserId] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
-
-  // const userCount = 60; // Example total user count
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("");
+  const [groupMembers, setGroupMembers] = useState<User[]>([]);
 
   const [itemsPerPage] = useState(10); // 10 items per page for tables
 
-  const fetchUsers = async () => {
+  const fetchProjects = async () => {
     try {
-      const response: GetUsersResponse = await getUsers({
-        role: userRoleFilter !== "all" ? userRoleFilter : undefined,
-        page: currentUserPage,
+      const response: GetProjectsResponse = await getProjects({
+        status: projectStatusFilter !== "all" ? projectStatusFilter : undefined,
+        page: currentProjectPage,
         pageSize: itemsPerPage,
       });
 
-      setUsers(response.results);
-      setStats({ userCount: response.total });
-      console.log("Fetched users:", response.results);
+      setProjects(response.results);
+      setStats({ projectCount: response.total });
+      console.log("Fetched projects:", response.results);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching projects:", error);
     }
   };
 
-  const handleAddUser = async () => {
-    if (!userId || !name || !email || !password || !role) {
+  const handleAddProject = async () => {
+    if (!title || !description || !status || groupMembers.length === 0) {
       toast({
-        title: "Add User Error",
+        title: "Add Project Error",
         description: "All fields are required",
       });
       return;
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      toast({ title: "Add User Error", description: "Invalid email format" });
-      return;
-    }
-
     try {
       setIsLoading(true);
+      // TODO::等候端
+      await createProject({ user_id: userId, name, email, password, role });
 
-      await createUser({ user_id: userId, name, email, password, role });
-
-      setIsAddUserDialogOpen(false);
-      toast({ title: "Add User Success" });
-      fetchUsers();
+      setIsAddProjectDialogOpen(false);
+      toast({ title: "Add Project Success" });
+      fetchProjects();
     } catch (err) {
-      toast({ title: "Add User Error", description: `${err}` });
+      toast({ title: "Add Project Error", description: `${err}` });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEditUser = async () => {
-    if (!userId || !name || !email || !password || !role) {
+  const handleEditProject = async () => {
+    if (!title || !description || !status || groupMembers.length === 0) {
       toast({
-        title: "Edit User Error",
+        title: "Edit Project Error",
         description: "All fields are required",
       });
       return;
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      toast({ title: "Edit User Error", description: "Invalid email format" });
-      return;
-    }
-
     try {
       setIsLoading(true);
 
-      await updateUser({ user_id: userId, name, email, password, role });
+      await updateProject({ user_id: userId, name, email, password, role });
 
-      toast({ title: "Edit User Success" });
-      setIsEditUserDialogOpen(false);
-      setSelectedUser(null);
-      fetchUsers();
+      toast({ title: "Edit Project Success" });
+      setIsEditProjectDialogOpen(false);
+
+      setSelectedProject(null);
+      fetchProjects();
     } catch (err) {
-      toast({ title: "Edit User Error", description: `${err}` });
+      toast({ title: "Edit Project Error", description: `${err}` });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDeleteUser = async () => {
-    console.log(`Deleting user with ID: ${selectedUser?.user_id}`);
+  const handleDeleteProject = async () => {
+    console.log(`Deleting proejct with ID: ${selectedProject?.project_id}`);
 
-    if (!selectedUser) return;
+    if (!selectedProject) return;
 
     try {
       setIsLoading(true);
 
-      await deleteUser(selectedUser?.user_id);
+      await deleteProject(selectedProject?.project_id);
 
-      toast({ title: "Delete User Success" });
-      setIsDeleteUserDialogOpen(false);
-      setSelectedUser(null);
-      fetchUsers();
+      toast({ title: "Delete Project Success" });
+      setIsDeleteProjectDialogOpen(false);
+      setSelectedProject(null);
+      fetchProjects();
     } catch (err) {
-      toast({ title: "Delete User Error", description: `${err}` });
+      toast({ title: "Delete Project Error", description: `${err}` });
     } finally {
       setIsLoading(false);
     }
-
-    setIsDeleteUserDialogOpen(false);
-    setSelectedUser(null);
-    // In a real app, this would call an API to delete the user
   };
 
   useEffect(() => {
-    setUserId("");
-    setName("");
-    setEmail("");
-    setRole("");
-    setPassword("");
-  }, [isAddUserDialogOpen]);
+    setTitle("");
+    setDescription("");
+    setStatus("");
+    setGroupMembers([]);
+  }, [isAddProjectDialogOpen]);
 
   useEffect(() => {
-    if (selectedUser) {
-      setUserId(selectedUser?.user_id);
-      setName(selectedUser?.name);
-      setEmail(selectedUser?.email);
-      setRole(selectedUser?.role);
-      setPassword("");
+    if (selectedProject) {
+      setTitle(selectedProject?.title);
+      setDescription(selectedProject?.description);
+      setStatus(selectedProject?.status);
+      // setGroupMembers(selectedProject?.groupMembers);
     }
-  }, [selectedUser]);
+  }, [selectedProject]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [userRoleFilter, currentUserPage, itemsPerPage]);
+    fetchProjects();
+  }, [projectStatusFilter, currentProjectPage, itemsPerPage]);
 
   // Reset pagination when filters change
   useEffect(() => {
-    setCurrentUserPage(1);
-  }, [userSearchQuery, userRoleFilter]);
+    setCurrentProjectPage(1);
+  }, [projectSearchQuery, projectStatusFilter]);
 
   return (
     <>
-      <TabsContent value="users" className="space-y-4">
+      <TabsContent value="projects" className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>User Management</CardTitle>
+            <CardTitle>Project Management</CardTitle>
             <CardDescription>
-              View and manage all users in the system
+              View and manage all projects in the system
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -242,67 +230,68 @@ export default function UserTab() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search users by name or email..."
+                  placeholder="Search projects by name or email..."
                   className="w-full pl-8"
-                  value={userSearchQuery}
-                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  value={projectSearchQuery}
+                  onChange={(e) => setProjectSearchQuery(e.target.value)}
                 />
               </div>
               <div className="flex gap-2 w-full sm:w-auto">
                 <Select
-                  value={userRoleFilter}
-                  onValueChange={setUserRoleFilter}
+                  value={projectStatusFilter}
+                  onValueChange={setProjectStatusFilter}
                 >
                   <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Filter by role" />
+                    <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
                     {/* <SelectItem value="admin">Admin</SelectItem> */}
-                    <SelectItem value="professor">Professor</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                    <SelectItem value="in_progress">In-Progress</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
                   </SelectContent>
                 </Select>
-                {/* add user dialog */}
+                {/* add project dialog */}
                 <Dialog
-                  open={isAddUserDialogOpen}
-                  onOpenChange={setIsAddUserDialogOpen}
+                  open={isAddProjectDialogOpen}
+                  onOpenChange={setIsAddProjectDialogOpen}
                 >
                   <DialogTrigger asChild>
                     <Button>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Add User
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Project
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Add New User</DialogTitle>
+                      <DialogTitle>Add New Project</DialogTitle>
                       <DialogDescription>
-                        Create a new user account in the system.
+                        Create a new project in the system.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="user_id" className="text-right">
-                          Student_ID
+                        <Label htmlFor="project_title" className="text-right">
+                          ProjectTitle
                         </Label>
                         <Input
-                          id="user_id"
-                          onChange={(e) => setUserId(e.target.value)}
+                          id="project_title"
+                          onChange={(e) => setTitle(e.target.value)}
                           className="col-span-3"
                         />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
-                          Name
+                          Description
                         </Label>
                         <Input
                           id="name"
                           className="col-span-3"
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => setDescription(e.target.value)}
                         />
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
+                      {/* <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="email" className="text-right">
                           Email
                         </Label>
@@ -322,19 +311,22 @@ export default function UserTab() {
                           className="col-span-3"
                           onChange={(e) => setPassword(e.target.value)}
                         />
-                      </div>
+                      </div> */}
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="role" className="text-right">
-                          Role
+                          Status
                         </Label>
-                        <Select onValueChange={(value) => setRole(value)}>
+                        <Select onValueChange={(value) => setStatus(value)}>
                           <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
                           <SelectContent>
                             {/* <SelectItem value="admin">Admin</SelectItem> */}
-                            <SelectItem value="professor">Professor</SelectItem>
-                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="done">Done</SelectItem>
+                            <SelectItem value="in_progress">
+                              In-Progress
+                            </SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -346,8 +338,8 @@ export default function UserTab() {
                           Creating...
                         </Button>
                       ) : (
-                        <Button onClick={handleAddUser} type="submit">
-                          Create User
+                        <Button onClick={handleAddProject} type="submit">
+                          Create Project
                         </Button>
                       )}
                     </DialogFooter>
@@ -360,42 +352,44 @@ export default function UserTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>id</TableHead>
-                    <TableHead>created_at</TableHead>
-                    <TableHead>lastUpdated</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>status</TableHead>
+                    <TableHead>Professor</TableHead>
+                    <TableHead>Members</TableHead>
+                    <TableHead>Deadline</TableHead>
+                    <TableHead>Progress</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.length > 0 ? (
-                    users.map((user) => (
-                      <TableRow key={user.user_id}>
+                  {projects.length > 0 ? (
+                    projects.map((project) => (
+                      <TableRow key={project.project_id}>
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage
-                                src={user.image_url || "/placeholder.svg"}
-                                alt={user.name}
-                                className="bg-white"
-                              />
-                              {/* <AvatarFallback>{user.initials}</AvatarFallback> */}
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{user.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {user.email}
-                              </div>
-                            </div>
+                          <div className="font-medium">{project.title}</div>
+                          <div className="text-xs text-muted-foreground">
+                            ID: {project.project_id}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <RoleBadge role={user.role} />
+                          <StatusBadge status={project.status} />
                         </TableCell>
-                        <TableCell>{user.user_id}</TableCell>
-                        <TableCell>{user.create_at}</TableCell>
-                        <TableCell>{user.update_at}</TableCell>
+                        <TableCell>{project.professor}</TableCell>
+                        {/* TODO::等候端 */}
+                        {/* <TableCell>{project.memberCount}</TableCell> */}
+                        <TableCell>{6}</TableCell>
+                        <TableCell>
+                          {new Date(project.deadline).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress
+                              value={project.progress}
+                              className="h-2 w-[60px]"
+                            />
+                            <span className="text-xs">{project.progress}%</span>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -405,24 +399,31 @@ export default function UserTab() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/projects/${project.project_id}`}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Project
+                                </Link>
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
-                                  setSelectedUser(user);
-                                  setIsEditUserDialogOpen(true);
+                                  setSelectedProject(project);
+                                  setIsEditProjectDialogOpen(true);
                                 }}
                               >
                                 <PencilLine className="mr-2 h-4 w-4" />
-                                Edit User
+                                Edit Project
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => {
-                                  setSelectedUser(user);
-                                  setIsDeleteUserDialogOpen(true);
+                                  setSelectedProject(project);
+                                  setIsDeleteProjectDialogOpen(true);
                                 }}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete User
+                                Delete Project
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -432,7 +433,7 @@ export default function UserTab() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center">
-                        No users found.
+                        No projects found.
                       </TableCell>
                     </TableRow>
                   )}
@@ -442,83 +443,81 @@ export default function UserTab() {
           </CardContent>
         </Card>
         <Pagination
-          total={60}
-          page={currentUserPage}
+          total={projectCount}
+          page={currentProjectPage}
           pageSize={itemsPerPage}
-          onPageChange={setCurrentUserPage}
+          onPageChange={setCurrentProjectPage}
         />
       </TabsContent>
 
-      {/* edit user dialog */}
+      {/* edit project dialog */}
       <Dialog
-        open={isEditUserDialogOpen}
-        onOpenChange={setIsEditUserDialogOpen}
+        open={isEditProjectDialogOpen}
+        onOpenChange={setIsEditProjectDialogOpen}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
-              Edit User {selectedUser?.name}(user_id:{selectedUser?.user_id}) in
-              the system.
+              Edit Project {selectedProject?.title}(project_id:
+              {selectedProject?.project_id}) in the system.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="user_id" className="text-right">
-                Student_ID
+              <Label htmlFor="project_id" className="text-right">
+                ProjectTitle
               </Label>
               <Input
-                id="user_id"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
+                id="project_id"
+                onChange={(e) => setTitle(e.target.value)}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name
+                Description
               </Label>
               <Input
                 id="name"
-                value={name}
                 className="col-span-3"
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="email"
-                value={email}
-                type="email"
-                className="col-span-3"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="password" className="text-right">
-                Password
-              </Label>
-              <Input
-                id="password"
-                className="col-span-3"
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            {/* <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="email" className="text-right">
+                          Email
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          className="col-span-3"
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="password" className="text-right">
+                          Password
+                        </Label>
+                        <Input
+                          id="password"
+                          className="col-span-3"
+                          onChange={(e) => setPassword(e.target.value)}
+                        />
+                      </div> */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
-                Role
+                Status
               </Label>
-              <Select value={role} onValueChange={(value) => setRole(value)}>
+              <Select onValueChange={(value) => setStatus(value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
                   {/* <SelectItem value="admin">Admin</SelectItem> */}
-                  <SelectItem value="professor">Professor</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="in_progress">In-Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -530,7 +529,7 @@ export default function UserTab() {
                 Saving Changes...
               </Button>
             ) : (
-              <Button onClick={handleEditUser} type="submit">
+              <Button onClick={handleEditProject} type="submit">
                 Save Changes
               </Button>
             )}
@@ -538,23 +537,23 @@ export default function UserTab() {
         </DialogContent>
       </Dialog>
 
-      {/* delete user dialog */}
+      {/* delete project dialog */}
       <Dialog
-        open={isDeleteUserDialogOpen}
-        onOpenChange={setIsDeleteUserDialogOpen}
+        open={isDeleteProjectDialogOpen}
+        onOpenChange={setIsDeleteProjectDialogOpen}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
+            <DialogTitle>Delete Project</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user(user_id:
-              {selectedUser?.user_id})? This action cannot be undone.
+              Are you sure you want to delete this project(project_id:
+              {selectedProject?.project_id})? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setIsDeleteUserDialogOpen(false)}
+              onClick={() => setIsDeleteProjectDialogOpen(false)}
             >
               Cancel
             </Button>
@@ -564,7 +563,7 @@ export default function UserTab() {
                 Deleting...
               </Button>
             ) : (
-              <Button variant="destructive" onClick={handleDeleteUser}>
+              <Button variant="destructive" onClick={handleDeleteProject}>
                 Delete
               </Button>
             )}

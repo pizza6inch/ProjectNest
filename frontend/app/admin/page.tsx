@@ -15,7 +15,6 @@ import {
   Trash2,
   PencilLine,
   Eye,
-  UserPlus,
   Plus,
 } from "lucide-react";
 
@@ -69,71 +68,72 @@ import React from "react";
 
 import OverviewTab from "@/components/overview-tab";
 import UserTab from "@/components/user-tab";
+import ProjectTab from "@/components/project-tab";
 
 import { DashboardStatsProvider } from "@/hooks/dashBoardStatsContext";
 // Mock data for projects
-const projects = [
-  {
-    id: "1",
-    title: "Machine Learning Algorithm Comparison",
-    status: "in-progress",
-    deadline: "2025-06-15",
-    progress: 65,
-    professor: "Dr. Williams",
-    memberCount: 3,
-    lastUpdated: "2 days ago",
-  },
-  {
-    id: "2",
-    title: "Web Application Security Analysis",
-    status: "pending",
-    deadline: "2025-07-01",
-    progress: 10,
-    professor: "Dr. Garcia",
-    memberCount: 2,
-    lastUpdated: "5 days ago",
-  },
-  {
-    id: "3",
-    title: "Database Optimization Techniques",
-    status: "completed",
-    deadline: "2025-05-20",
-    progress: 100,
-    professor: "Dr. Williams",
-    memberCount: 3,
-    lastUpdated: "1 week ago",
-  },
-  {
-    id: "4",
-    title: "Mobile App Development for Campus Services",
-    status: "in-progress",
-    deadline: "2025-06-30",
-    progress: 45,
-    professor: "Dr. Garcia",
-    memberCount: 2,
-    lastUpdated: "3 days ago",
-  },
-  {
-    id: "5",
-    title: "Natural Language Processing Research",
-    status: "in-progress",
-    deadline: "2025-07-15",
-    progress: 30,
-    professor: "Dr. Williams",
-    memberCount: 2,
-    lastUpdated: "1 day ago",
-  },
-  {
-    id: "6",
-    title: "Cloud Infrastructure Deployment",
-    status: "pending",
-    deadline: "2025-08-01",
-    progress: 5,
-    professor: "Dr. Garcia",
-    memberCount: 3,
-    lastUpdated: "1 week ago",
-  },
-];
+// const projects = [
+//   {
+//     id: "1",
+//     title: "Machine Learning Algorithm Comparison",
+//     status: "in-progress",
+//     deadline: "2025-06-15",
+//     progress: 65,
+//     professor: "Dr. Williams",
+//     memberCount: 3,
+//     lastUpdated: "2 days ago",
+//   },
+//   {
+//     id: "2",
+//     title: "Web Application Security Analysis",
+//     status: "pending",
+//     deadline: "2025-07-01",
+//     progress: 10,
+//     professor: "Dr. Garcia",
+//     memberCount: 2,
+//     lastUpdated: "5 days ago",
+//   },
+//   {
+//     id: "3",
+//     title: "Database Optimization Techniques",
+//     status: "completed",
+//     deadline: "2025-05-20",
+//     progress: 100,
+//     professor: "Dr. Williams",
+//     memberCount: 3,
+//     lastUpdated: "1 week ago",
+//   },
+//   {
+//     id: "4",
+//     title: "Mobile App Development for Campus Services",
+//     status: "in-progress",
+//     deadline: "2025-06-30",
+//     progress: 45,
+//     professor: "Dr. Garcia",
+//     memberCount: 2,
+//     lastUpdated: "3 days ago",
+//   },
+//   {
+//     id: "5",
+//     title: "Natural Language Processing Research",
+//     status: "in-progress",
+//     deadline: "2025-07-15",
+//     progress: 30,
+//     professor: "Dr. Williams",
+//     memberCount: 2,
+//     lastUpdated: "1 day ago",
+//   },
+//   {
+//     id: "6",
+//     title: "Cloud Infrastructure Deployment",
+//     status: "pending",
+//     deadline: "2025-08-01",
+//     progress: 5,
+//     professor: "Dr. Garcia",
+//     memberCount: 3,
+//     lastUpdated: "1 week ago",
+//   },
+// ];
 
 // Status badge component
 function StatusBadge({ status }: { status: string }) {
@@ -205,14 +205,14 @@ export default function AdminDashboardPage() {
   // })
 
   // // Filter projects based on search and status filter
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch = project.title
-      .toLowerCase()
-      .includes(projectSearchQuery.toLowerCase());
-    const matchesStatus =
-      projectStatusFilter === "all" || project.status === projectStatusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // const filteredProjects = projects.filter((project) => {
+  //   const matchesSearch = project.title
+  //     .toLowerCase()
+  //     .includes(projectSearchQuery.toLowerCase());
+  //   const matchesStatus =
+  //     projectStatusFilter === "all" || project.status === projectStatusFilter;
+  //   return matchesSearch && matchesStatus;
+  // });
 
   useEffect(() => {
     setCurrentProjectPage(1);
@@ -261,7 +261,7 @@ export default function AdminDashboardPage() {
 
             {/* Projects Tab */}
             <ProjectTab />
-            <TabsContent value="projects" className="space-y-4">
+            {/* <TabsContent value="projects" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Project Management</CardTitle>
@@ -551,7 +551,7 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
               )}
-            </TabsContent>
+            </TabsContent> */}
           </DashboardStatsProvider>
         </Tabs>
       </div>

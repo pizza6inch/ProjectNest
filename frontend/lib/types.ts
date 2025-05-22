@@ -9,8 +9,6 @@ export interface User {
   update_at: string;
 }
 
-export interface Project {
-
 export type GetUsersParams = {
   role?: string;
   sort_by?: string;

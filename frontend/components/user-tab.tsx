@@ -79,7 +79,7 @@ export default function UserTab() {
 
   const { toast } = useToast();
 
-  const { setStats } = useDashboardStats();
+  const { setStats, userCount } = useDashboardStats();
 
   // add/edit user form
   const [userId, setUserId] = useState("");
@@ -186,10 +186,6 @@ export default function UserTab() {
     } finally {
       setIsLoading(false);
     }
-
-    setIsDeleteUserDialogOpen(false);
-    setSelectedUser(null);
-    // In a real app, this would call an API to delete the user
   };
 
   useEffect(() => {
@@ -435,7 +431,7 @@ export default function UserTab() {
           </CardContent>
         </Card>
         <Pagination
-          total={60}
+          total={userCount}
           page={currentUserPage}
           pageSize={itemsPerPage}
           onPageChange={setCurrentUserPage}

@@ -102,7 +102,7 @@ export const deleteUser = async (user_id: string) => {
 
 // Get projects list
 export interface Project {
-  id: string;
+  project_id: string;
   title: string;
   status: string;
   deadline: string;
@@ -121,7 +121,7 @@ export interface GetProjectsResponse {
 }
 
 export const getProjects = async (params: {
-  status?: "done" | "pending";
+  status?: string;
   keywords?: string;
   sort_by?: string;
   page?: number;
@@ -147,3 +147,15 @@ export const getTotalProjects = async (params: {
   return response.data;
 };
 export default apiClient;
+
+export const createProject = async (projectData: {
+  title: string;
+  status: string;
+  deadline: string;
+  progress: number;
+  professor: string;
+  description: string;
+}) => {
+  await apiClient.post("/create_project", projectData);
+  console.log("createProject API");
+};

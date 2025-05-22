@@ -60,7 +60,9 @@ apiClient.interceptors.response.use(
 // export const getTotalUsers  = async ():Promise<{"total_user_count"}>
 
 // Get Users
-export const getUsers = async (params: GetUsersParams = {}): Promise<GetUsersResponse> => {
+export const getUsers = async (
+  params: GetUsersParams = {}
+): Promise<GetUsersResponse> => {
   const response = await apiClient.get<GetUsersResponse>("/get_users", {
     params,
   });
@@ -106,13 +108,42 @@ export interface Project {
   deadline: string;
   progress: number;
   professor: string;
-  lastActivity: string;
+  update_at: string;
+  description: string;
+  create_at: string;
 }
 
-export const getProjects = async (): Promise<Project[]> => {
-  const response = await apiClient.get<Project[]>("/projects");
+export interface GetProjectsResponse {
+  total: number;
+  results: Project[];
+  page: number;
+  pageSize: number;
+}
+
+export const getProjects = async (params: {
+  status?: "done" | "pending";
+  keywords?: string;
+  sort_by?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<GetProjectsResponse> => {
+  const response = await apiClient.get<GetProjectsResponse>("/get_projects", {
+    params,
+  });
   console.log("getProjects API");
   return response.data;
 };
 
+export const getTotalProjects = async (params: {
+  status?: "in_progress" | "done";
+}): Promise<{ total_projects: number }> => {
+  const response = await apiClient.get<{ total_projects: number }>(
+    "/totalProjects",
+    {
+      params,
+    }
+  );
+  console.log("totalProjects API");
+  return response.data;
+};
 export default apiClient;

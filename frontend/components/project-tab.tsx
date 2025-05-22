@@ -59,21 +59,28 @@ import { Label } from "@/components/ui/label";
 import RoleBadge from "@/components/role-badge";
 import Pagination from "./pagination";
 
-import { getUsers, createUser, updateUser, deleteUser } from "@/lib/apiClient";
-import { User, GetUsersResponse } from "@/lib/types";
+import {
+  getProjects,
+  createProject,
+  updateProject,
+  deleteProject,
+  Project,
+} from "@/lib/apiClient";
+import { GetUsersResponse } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardStats } from "@/hooks/dashBoardStatsContext";
 
 export default function UserTab() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [userSearchQuery, setUserSearchQuery] = useState("");
-  const [userRoleFilter, setUserRoleFilter] = useState("all");
-  const [currentUserPage, setCurrentUserPage] = useState(1);
-  const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] = useState(false);
-  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
-  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [users, setPorjects] = useState<Project[]>([]);
+  const [projectSearchQuery, setProjectSearchQuery] = useState("");
+  const [projectRoleFilter, setProjectRoleFilter] = useState("all");
+  const [currentProjectPage, setCurrentProjectPage] = useState(1);
+  const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] =
+    useState(false);
+  const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
+  const [isEditProjectDialogOpen, setIsEditProjectDialogOpen] = useState(false);
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -81,7 +88,7 @@ export default function UserTab() {
 
   const { setStats } = useDashboardStats();
 
-  // add/edit user form
+  // add/edit project form
   const [userId, setUserId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

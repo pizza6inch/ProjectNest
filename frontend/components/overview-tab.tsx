@@ -3,83 +3,111 @@ import React, { useEffect, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TabsContent } from "@/components/ui/tabs";
 import RoleBadge from "@/components/role-badge";
 import StatusBadge from "@/components/status-badge";
 import { Users, FolderKanban, BarChart3, CheckCircle2 } from "lucide-react";
 
-import { getUsers } from "@/lib/apiClient";
+import {
+  getProjects,
+  getUsers,
+  Project,
+  getTotalProjects,
+} from "@/lib/apiClient";
 import { User } from "@/lib/types";
 
-const projects = [
-  {
-    id: "1",
-    title: "Machine Learning Algorithm Comparison",
-    status: "in-progress",
-    deadline: "2025-06-15",
-    progress: 65,
-    professor: "Dr. Williams",
-    memberCount: 3,
-    lastUpdated: "2 days ago",
-  },
-  {
-    id: "2",
-    title: "Web Application Security Analysis",
-    status: "pending",
-    deadline: "2025-07-01",
-    progress: 10,
-    professor: "Dr. Garcia",
-    memberCount: 2,
-    lastUpdated: "5 days ago",
-  },
-  {
-    id: "3",
-    title: "Database Optimization Techniques",
-    status: "completed",
-    deadline: "2025-05-20",
-    progress: 100,
-    professor: "Dr. Williams",
-    memberCount: 3,
-    lastUpdated: "1 week ago",
-  },
-  {
-    id: "4",
-    title: "Mobile App Development for Campus Services",
-    status: "in-progress",
-    deadline: "2025-06-30",
-    progress: 45,
-    professor: "Dr. Garcia",
-    memberCount: 2,
-    lastUpdated: "3 days ago",
-  },
-  {
-    id: "5",
-    title: "Natural Language Processing Research",
-    status: "in-progress",
-    deadline: "2025-07-15",
-    progress: 30,
-    professor: "Dr. Williams",
-    memberCount: 2,
-    lastUpdated: "1 day ago",
-  },
-  {
-    id: "6",
-    title: "Cloud Infrastructure Deployment",
-    status: "pending",
-    deadline: "2025-08-01",
-    progress: 5,
-    professor: "Dr. Garcia",
-    memberCount: 3,
-    lastUpdated: "1 week ago",
-  },
-];
+import {
+  useDashboardStats,
+  DashboardStats,
+} from "@/hooks/dashBoardStatsContext";
 
-export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
+// const projects = [
+//   {
+//     id: "1",
+//     title: "Machine Learning Algorithm Comparison",
+//     status: "in-progress",
+//     deadline: "2025-06-15",
+//     progress: 65,
+//     professor: "Dr. Williams",
+//     memberCount: 3,
+//     lastUpdated: "2 days ago",
+//   },
+//   {
+//     id: "2",
+//     title: "Web Application Security Analysis",
+//     status: "pending",
+//     deadline: "2025-07-01",
+//     progress: 10,
+//     professor: "Dr. Garcia",
+//     memberCount: 2,
+//     lastUpdated: "5 days ago",
+//   },
+//   {
+//     id: "3",
+//     title: "Database Optimization Techniques",
+//     status: "completed",
+//     deadline: "2025-05-20",
+//     progress: 100,
+//     professor: "Dr. Williams",
+//     memberCount: 3,
+//     lastUpdated: "1 week ago",
+//   },
+//   {
+//     id: "4",
+//     title: "Mobile App Development for Campus Services",
+//     status: "in-progress",
+//     deadline: "2025-06-30",
+//     progress: 45,
+//     professor: "Dr. Garcia",
+//     memberCount: 2,
+//     lastUpdated: "3 days ago",
+//   },
+//   {
+//     id: "5",
+//     title: "Natural Language Processing Research",
+//     status: "in-progress",
+//     deadline: "2025-07-15",
+//     progress: 30,
+//     professor: "Dr. Williams",
+//     memberCount: 2,
+//     lastUpdated: "1 day ago",
+//   },
+//   {
+//     id: "6",
+//     title: "Cloud Infrastructure Deployment",
+//     status: "pending",
+//     deadline: "2025-08-01",
+//     progress: 5,
+//     professor: "Dr. Garcia",
+//     memberCount: 3,
+//     lastUpdated: "1 week ago",
+//   },
+// ];
+
+export default function OverviewTab({
+  setActiveTab,
+}: {
+  setActiveTab: (tab: string) => void;
+}) {
   const [users, setUsers] = useState<User[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-  const { userCount, projectCount, completedProjects, activeProjects, setStats } = useDashboardStats();
+  const {
+    userCount,
+    projectCount,
+    completedProjects,
+    activeProjects,
+    setStats,
+  } = useDashboardStats();
   // const [projects, setProjects] = useState(projects);
 
   // get users data from API
@@ -102,11 +130,66 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
     fetchUsers();
   }, []);
 
+  // get projects data from API
+  useEffect(() => {
+    const fetchProejcts = async () => {
+      try {
+        const response = await getProjects({
+          sort_by: "created_at",
+          page: 1,
+          pageSize: 7,
+        });
+        setProjects(response.results);
+        console.log("Fetched projects:", response.results);
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+      }
+    };
+
+    fetchProejcts();
+  }, []);
+
+  // get active projects count from API
+  useEffect(() => {
+    const fetchTotalProjects = async () => {
+      try {
+        const response = await getTotalProjects({
+          status: "in_progress",
+        });
+        setStats({
+          activeProjects: response.total_projects,
+        });
+      } catch (error) {
+        console.error("Failed to fetch total projects:", error);
+      }
+    };
+
+    fetchTotalProjects();
+  }, []);
+
+  // get completed projects count from API
+  useEffect(() => {
+    const fetchTotalProjects = async () => {
+      try {
+        const response = await getTotalProjects({
+          status: "done",
+        });
+        setStats({
+          completedProjects: response.total_projects,
+        });
+      } catch (error) {
+        console.error("Failed to fetch total projects:", error);
+      }
+    };
+
+    fetchTotalProjects();
+  }, []);
+
   // Stats for overview
   const stats = [
     {
       title: "Total Users",
-      value: 778899,
+      value: userCount,
       icon: Users,
       change: "+2 this month",
       trend: "up",
@@ -114,7 +197,7 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
     {
       title: "Active Projects",
       //   value: projects.filter((p) => p.status !== "completed").length,
-      value: 778899,
+      value: activeProjects,
       icon: FolderKanban,
       change: "+1 this week",
       trend: "up",
@@ -122,7 +205,7 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
     {
       title: "Completed Projects",
       // value: projects.filter((p) => p.status === "completed").length,
-      value: 778899,
+      value: completedProjects,
       icon: CheckCircle2,
       change: "No change",
       trend: "neutral",
@@ -144,12 +227,14 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
         {stats.map((stat, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {stat.title}
+              </CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.change}</p>
+              {/* <p className="text-xs text-muted-foreground">{stat.change}</p> */}
             </CardContent>
           </Card>
         ))}
@@ -159,7 +244,9 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
         <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Recent Users</CardTitle>
-            <CardDescription>Recently active users in the system</CardDescription>
+            <CardDescription>
+              Recently active users in the system
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -167,12 +254,19 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
                 users.map((user) => (
                   <div key={user.user_id} className="flex items-center gap-4">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.image_url || "/placeholder.svg"} alt={user.name} />
+                      <AvatarImage
+                        src={user.image_url || "/placeholder.svg"}
+                        alt={user.name}
+                      />
                       {/* <AvatarFallback>{user.initials}</AvatarFallback> */}
                     </Avatar>
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <p className="text-sm font-medium leading-none">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
                     <RoleBadge role={user.role} />
                   </div>
@@ -180,7 +274,11 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
             </div>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full" onClick={() => setActiveTab("users")}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setActiveTab("users")}
+            >
               View All Users
             </Button>
           </CardFooter>
@@ -193,23 +291,29 @@ export default function OverviewTab({ setActiveTab }: { setActiveTab: (tab: stri
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {projects.slice(0, 5).map((project) => (
-                <div key={project.id} className="space-y-2">
+              {projects.map((project) => (
+                <div key={project.title} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">{project.title}</p>
                     <StatusBadge status={project.status} />
                   </div>
                   <div className="flex items-center text-xs text-muted-foreground">
-                    <span>Progress: {project.progress}%</span>
-                    <span className="ml-auto">{project.lastUpdated}</span>
+                    {/* TODO::讓後端把資料補上 */}
+                    <span>Progress: {60}%</span>
+                    <span className="ml-auto">{project.update_at}</span>
                   </div>
-                  <Progress value={project.progress} className="h-1" />
+                  <Progress value={60} className="h-1" />
+                  {/* <p>{project.deadline}</p> */}
                 </div>
               ))}
             </div>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full" onClick={() => setActiveTab("projects")}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setActiveTab("projects")}
+            >
               View All Projects
             </Button>
           </CardFooter>

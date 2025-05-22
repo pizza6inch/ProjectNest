@@ -20,7 +20,14 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -33,8 +40,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +70,7 @@ import React from "react";
 import OverviewTab from "@/components/overview-tab";
 import UserTab from "@/components/user-tab";
 
-import { DashboardStatsProvider } from "@/contexts/DashboardStatsContext";
+import { DashboardStatsProvider } from "@/hooks/dashBoardStatsContext";
 // Mock data for projects
 const projects = [
   {
@@ -167,7 +187,8 @@ export default function AdminDashboardPage() {
   const [projectSearchQuery, setProjectSearchQuery] = useState("");
   const [projectStatusFilter, setProjectStatusFilter] = useState("all");
   const [isDeleteUserDialogOpen, setIsDeleteUserDialogOpen] = useState(false);
-  const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] = useState(false);
+  const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] =
+    useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [currentUserPage, setCurrentUserPage] = useState(1);
   const [currentProjectPage, setCurrentProjectPage] = useState(1);
@@ -185,8 +206,11 @@ export default function AdminDashboardPage() {
 
   // // Filter projects based on search and status filter
   const filteredProjects = projects.filter((project) => {
-    const matchesSearch = project.title.toLowerCase().includes(projectSearchQuery.toLowerCase());
-    const matchesStatus = projectStatusFilter === "all" || project.status === projectStatusFilter;
+    const matchesSearch = project.title
+      .toLowerCase()
+      .includes(projectSearchQuery.toLowerCase());
+    const matchesStatus =
+      projectStatusFilter === "all" || project.status === projectStatusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -211,11 +235,17 @@ export default function AdminDashboardPage() {
               <Shield className="h-8 w-8 text-red-600" />
               Admin Dashboard
             </h1>
-            <p className="text-muted-foreground">Manage users, projects, and system settings</p>
+            <p className="text-muted-foreground">
+              Manage users, projects, and system settings
+            </p>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-4"
+        >
           <TabsList className="grid grid-cols-3 md:w-[400px]">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
@@ -230,11 +260,14 @@ export default function AdminDashboardPage() {
             <UserTab />
 
             {/* Projects Tab */}
+            <ProjectTab />
             <TabsContent value="projects" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Project Management</CardTitle>
-                  <CardDescription>View and manage all projects in the system</CardDescription>
+                  <CardDescription>
+                    View and manage all projects in the system
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -249,13 +282,18 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                      <Select value={projectStatusFilter} onValueChange={setProjectStatusFilter}>
+                      <Select
+                        value={projectStatusFilter}
+                        onValueChange={setProjectStatusFilter}
+                      >
                         <SelectTrigger className="w-full sm:w-[180px]">
                           <SelectValue placeholder="Filter by status" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Statuses</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="in-progress">
+                            In Progress
+                          </SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
                           <SelectItem value="pending">Pending</SelectItem>
                         </SelectContent>
@@ -283,23 +321,39 @@ export default function AdminDashboardPage() {
                       <TableBody>
                         {filteredProjects.length > 0 ? (
                           filteredProjects
-                            .slice((currentProjectPage - 1) * itemsPerPage, currentProjectPage * itemsPerPage)
+                            .slice(
+                              (currentProjectPage - 1) * itemsPerPage,
+                              currentProjectPage * itemsPerPage
+                            )
                             .map((project) => (
                               <TableRow key={project.id}>
                                 <TableCell>
-                                  <div className="font-medium">{project.title}</div>
-                                  <div className="text-xs text-muted-foreground">ID: {project.id}</div>
+                                  <div className="font-medium">
+                                    {project.title}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    ID: {project.id}
+                                  </div>
                                 </TableCell>
                                 <TableCell>
                                   <StatusBadge status={project.status} />
                                 </TableCell>
                                 <TableCell>{project.professor}</TableCell>
                                 <TableCell>{project.memberCount}</TableCell>
-                                <TableCell>{new Date(project.deadline).toLocaleDateString()}</TableCell>
+                                <TableCell>
+                                  {new Date(
+                                    project.deadline
+                                  ).toLocaleDateString()}
+                                </TableCell>
                                 <TableCell>
                                   <div className="flex items-center gap-2">
-                                    <Progress value={project.progress} className="h-2 w-[60px]" />
-                                    <span className="text-xs">{project.progress}%</span>
+                                    <Progress
+                                      value={project.progress}
+                                      className="h-2 w-[60px]"
+                                    />
+                                    <span className="text-xs">
+                                      {project.progress}%
+                                    </span>
                                   </div>
                                 </TableCell>
                                 <TableCell className="text-right">
@@ -355,14 +409,18 @@ export default function AdminDashboardPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentProjectPage((prev) => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentProjectPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentProjectPage === 1}
                     >
                       Previous
                     </Button>
                     <div className="flex items-center space-x-1">
                       {(() => {
-                        const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+                        const totalPages = Math.ceil(
+                          filteredProjects.length / itemsPerPage
+                        );
                         const pages = [];
 
                         if (totalPages <= 5) {
@@ -371,7 +429,11 @@ export default function AdminDashboardPage() {
                             pages.push(
                               <Button
                                 key={i}
-                                variant={currentProjectPage === i ? "default" : "outline"}
+                                variant={
+                                  currentProjectPage === i
+                                    ? "default"
+                                    : "outline"
+                                }
                                 size="sm"
                                 className="w-9"
                                 onClick={() => setCurrentProjectPage(i)}
@@ -394,7 +456,11 @@ export default function AdminDashboardPage() {
                             pages.push(
                               <Button
                                 key={1}
-                                variant={currentProjectPage === 1 ? "default" : "outline"}
+                                variant={
+                                  currentProjectPage === 1
+                                    ? "default"
+                                    : "outline"
+                                }
                                 size="sm"
                                 className="w-9"
                                 onClick={() => setCurrentProjectPage(1)}
@@ -417,7 +483,11 @@ export default function AdminDashboardPage() {
                             pages.push(
                               <Button
                                 key={i}
-                                variant={currentProjectPage === i ? "default" : "outline"}
+                                variant={
+                                  currentProjectPage === i
+                                    ? "default"
+                                    : "outline"
+                                }
                                 size="sm"
                                 className="w-9"
                                 onClick={() => setCurrentProjectPage(i)}
@@ -440,10 +510,16 @@ export default function AdminDashboardPage() {
                             pages.push(
                               <Button
                                 key={totalPages}
-                                variant={currentProjectPage === totalPages ? "default" : "outline"}
+                                variant={
+                                  currentProjectPage === totalPages
+                                    ? "default"
+                                    : "outline"
+                                }
                                 size="sm"
                                 className="w-9"
-                                onClick={() => setCurrentProjectPage(totalPages)}
+                                onClick={() =>
+                                  setCurrentProjectPage(totalPages)
+                                }
                               >
                                 {totalPages}
                               </Button>
@@ -459,10 +535,16 @@ export default function AdminDashboardPage() {
                       size="sm"
                       onClick={() =>
                         setCurrentProjectPage((prev) =>
-                          Math.min(prev + 1, Math.ceil(filteredProjects.length / itemsPerPage))
+                          Math.min(
+                            prev + 1,
+                            Math.ceil(filteredProjects.length / itemsPerPage)
+                          )
                         )
                       }
-                      disabled={currentProjectPage === Math.ceil(filteredProjects.length / itemsPerPage)}
+                      disabled={
+                        currentProjectPage ===
+                        Math.ceil(filteredProjects.length / itemsPerPage)
+                      }
                     >
                       Next
                     </Button>
@@ -475,16 +557,23 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Delete Project Confirmation Dialog */}
-      <Dialog open={isDeleteProjectDialogOpen} onOpenChange={setIsDeleteProjectDialogOpen}>
+      <Dialog
+        open={isDeleteProjectDialogOpen}
+        onOpenChange={setIsDeleteProjectDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Project</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this project? This action cannot be undone.
+              Are you sure you want to delete this project? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteProjectDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteProjectDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteProject}>

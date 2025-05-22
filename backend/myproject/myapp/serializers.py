@@ -3,6 +3,7 @@ from .models import *
 from dateutil.parser import parse
 from dateutil.parser._parser import ParserError
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +14,17 @@ class UserSerializer(serializers.ModelSerializer):
                 "write_only": True
             }
         }
+
+    def create(self, validated_data):
+        if "password" in validated_data:
+            validated_data["password"] = make_password(validated_data["password"])
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "password" in validated_data:
+            validated_data["password"] = make_password(validated_data["password"])
+        return super().update(instance, validated_data)
+
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:

@@ -70,6 +70,12 @@ export const getUsers = async (
   return response.data;
 };
 
+// get user by id
+export const getUserById = async (user_id: string): Promise<User> => {
+  const response = await apiClient.get<User>(`/get_user_by_id/${user_id}`);
+  return response.data;
+};
+
 // Create a new user
 export const createUser = async (userData: {
   user_id: string;
@@ -156,12 +162,30 @@ export const createProject = async (projectData: {
   status: string;
   deadline: string;
   progress: number;
-  professor: string;
   description: string;
-  members: string[];
+  users: string[];
 }) => {
   await apiClient.post("/create_project", projectData);
   console.log("createProject API");
+};
+
+export const updateProject = async (projectData: {
+  project_id: string;
+  title: string;
+  status: string;
+  deadline: string;
+  progress: number;
+  professor: string;
+  description: string;
+  users: string[];
+}) => {
+  await apiClient.put(`/update_project/${projectData.project_id}`, projectData);
+  console.log("updateProject API");
+};
+
+export const deleteProject = async (project_id: string) => {
+  await apiClient.delete(`/delete_project/${project_id}`);
+  console.log("deleteProject API");
 };
 
 export const getToken = async ({

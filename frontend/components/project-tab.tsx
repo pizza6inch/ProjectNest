@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { Input } from "@/components/ui/input";
 
@@ -65,6 +65,7 @@ import { Eye } from "lucide-react";
 import Link from "next/link";
 
 import {
+  getUserById,
   getProjects,
   createProject,
   updateProject,
@@ -75,22 +76,6 @@ import {
 import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardStats } from "@/hooks/dashBoardStatsContext";
-
-const get_member_by_id = async (memberId) => {
-  // Simulate delay
-  await new Promise((r) => setTimeout(r, 500));
-  // Dummy data based on memberId
-  if (!memberId) throw new Error("Invalid member ID");
-  return {
-    user_id: memberId,
-    name: `Member Name ${memberId}`,
-    email: `${memberId}@school.edu`,
-    role: "student",
-    image_url: `https://api.adorable.io/avatars/285/${memberId}.png`,
-    create_at: new Date().toISOString(),
-    update_at: new Date().toISOString(),
-  };
-};
 
 export default function ProjectTab() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -149,10 +134,12 @@ export default function ProjectTab() {
     setMembers(newMembers);
 
     try {
-      const data = await get_member_by_id(memberId);
-      newMembers[index].data = data;
+      const user = await getUserById(memberId);
+
+      // const data = await get_member_by_id(memberId);
+      newMembers[index].data = user;
     } catch (error) {
-      newMembers[index].error = "Member not found";
+      newMembers[index].error = "User not found";
     } finally {
       newMembers[index].loading = false;
       setMembers([...newMembers]);
@@ -195,7 +182,14 @@ export default function ProjectTab() {
     try {
       setIsLoading(true);
       // TODO::等候端
-      await createProject({ user_id: userId, name, email, password, role });
+      await createProject({
+        title,
+        status,
+        deadline: deadline,
+        progress: 0,
+        description,
+        users: groupMembers.map((m) => m.user_id || ""),
+      });
 
       setIsAddProjectDialogOpen(false);
       toast({ title: "Add Project Success" });
@@ -409,17 +403,42 @@ export default function ProjectTab() {
                                   {member.error}
                                 </p>
                               )}
-                              {member.data && (
-                                <div className="bg-gray-50 p-2 rounded text-sm">
-                                  <p>
+                              {member.data && member.data.name && (
+                                <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
+                                  {/* <p>
                                     <strong>Name:</strong> {member.data.name}
                                   </p>
                                   <p>
                                     <strong>id:</strong> {member.data.user_id}
                                   </p>
                                   <p>
-                                    <strong>Email:</strong> {member.data.email}
-                                  </p>
+                                    <strong>role:</strong> {member.data.role}
+                                  </p> */}
+
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage
+                                      src={
+                                        member.data.image_url ||
+                                        "/placeholder-user.jpg"
+                                      }
+                                      alt={member.data.name}
+                                    />
+                                    <AvatarFallback>
+                                      {member.data.name
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">
+                                      {member.data.name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {member.data.role}
+                                    </span>
+                                  </div>
+                                  <span className="">{member.data.email}</span>
                                 </div>
                               )}
                             </div>

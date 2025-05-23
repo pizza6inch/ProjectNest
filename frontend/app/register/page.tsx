@@ -1,37 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "../../hooks/useAuth"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function RegisterPage() {
-  const { register, loading } = useAuth()
-  const router = useRouter()
+  const { register, loading } = useAuth();
+  const router = useRouter();
 
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState("student")
-  const [error, setError] = useState("")
+  const [studentId, setStudentId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
     try {
-      await register(name, email, password, role as "student" | "professor")
+      await register(studentId, name, email, password, role);
+      // await register({na})
       // router.push("/dashboard")
     } catch (err) {
-      setError("Registration failed")
+      setError("Registration failed");
     }
-  }
+  };
 
   return (
     <div className="max-w-md mx-auto mt-20 p-6 border rounded-md shadow-md">
       <h1 className="text-2xl font-bold mb-6">Register</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="studentId" className="block mb-1 font-medium">
+            Student ID
+          </label>
+          <Input
+            id="studentId"
+            type="text"
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            required
+            disabled={loading}
+          />
+        </div>
         <div>
           <label htmlFor="name" className="block mb-1 font-medium">
             Name
@@ -75,7 +96,10 @@ export default function RegisterPage() {
           <label htmlFor="role" className="block mb-1 font-medium">
             Role
           </label>
-          <Select value={role} onValueChange={(value: string) => setRole(value)}>
+          <Select
+            value={role}
+            onValueChange={(value: string) => setRole(value)}
+          >
             <SelectTrigger id="role" className="w-full">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>
@@ -92,5 +116,5 @@ export default function RegisterPage() {
         </Button>
       </form>
     </div>
-  )
+  );
 }

@@ -476,7 +476,11 @@ export default function ProjectTab() {
                         <TableCell>
                           <StatusBadge status={project.status} />
                         </TableCell>
-                        <TableCell>{project.professor}</TableCell>
+                        <TableCell>
+                          {project.professor_user
+                            ? project.professor_user.name
+                            : "N/A"}
+                        </TableCell>
                         {/* TODO::等候端 */}
                         {/* <TableCell>{project.memberCount}</TableCell> */}
                         <TableCell>{6}</TableCell>

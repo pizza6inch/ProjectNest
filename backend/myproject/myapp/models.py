@@ -16,7 +16,7 @@ class User(models.Model):
 
     # 角色分類 : 教授、學生
     role = models.CharField(
-        max_length=10, choices=[("professor", "Professor"), ("student", "Student")]
+        max_length=10, choices=[("professor", "Professor"), ("student", "Student"), ("admin", "Admin")],
     )
     # 頭像連結
     image_url = models.URLField(null=True, blank=True)
@@ -59,6 +59,11 @@ class Project(models.Model):
 
     # 更新時間
     update_at = models.DateTimeField(auto_now=True)  # 自動記錄更新時間
+
+    deadline = models.DateTimeField(null=True, blank=True)  # 專案截止時間
+
+    # 0~100
+    progress = models.IntegerField(default=0)  # 專案進度
 
 
 class ProjectProgress(models.Model):

@@ -19,7 +19,14 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         page_size = int(request.query_params.get("pageSize", 10))
 
         # 加上 annotate 統計每個 project 被幾個 user 關聯
-        projects = Project.objects.annotate(user_count=Count("projectuser"))
+        from django.db.models import Prefetch
+        projects = Project.objects.annotate(user_count=Count("projectuser")).prefetch_related(
+            Prefetch(
+                'projectuser_set',
+                queryset=ProjectUser.objects.filter(user__role='professor').select_related('user'),
+                to_attr='professor_projectuser'
+            )
+        )
 
         # 過濾 status
         if status in ["done", "pending"]:

@@ -1,6 +1,7 @@
 INSERT INTO `projectnest_database`.`myapp_user`
 (`user_id`,`name`,`email`,`password`,`role`,`image_url`,`create_at`,`update_at`)
 VALUES
+('admin001', 'Argenti', 'admin001@ntut.org.tw','pbkdf2_sha256$1000000$DGddN5sYTcYsaw8EakEYoA$w3ePvDTHCYmhY2nePIm6yI9N16rsE/PteqAQZhnzQfw=','admin', 'https://api.hakush.in/hsr/UI/avatarshopicon/1209.webp','2023-04-26 12:00:00', '2023-04-26 12:00:00'),
 ('112hsr001','Trailblazer','t112hsr001@ntut.org.tw','pbkdf2_sha256$1000000$DGddN5sYTcYsaw8EakEYoA$w3ePvDTHCYmhY2nePIm6yI9N16rsE/PteqAQZhnzQfw=','student','https://api.hakush.in/hsr/UI/avatarshopicon/8002.webp','2023-04-26 08:00:00','2023-04-26 08:00:00'),
 ('112hsr002','Bailu','t112hsr002@ntut.org.tw','pbkdf2_sha256$1000000$DGddN5sYTcYsaw8EakEYoA$w3ePvDTHCYmhY2nePIm6yI9N16rsE/PteqAQZhnzQfw=','professor','https://api.hakush.in/hsr/UI/avatarshopicon/1211.webp','2023-04-26 00:00:00','2023-04-26 00:00:00'),
 ('112hsr003','Yanqing','t112hsr003@ntut.org.tw','pbkdf2_sha256$1000000$DGddN5sYTcYsaw8EakEYoA$w3ePvDTHCYmhY2nePIm6yI9N16rsE/PteqAQZhnzQfw=','student','https://api.hakush.in/hsr/UI/avatarshopicon/1209.webp','2023-04-26 00:00:00','2023-04-26 00:00:00'),
@@ -71,24 +72,24 @@ VALUES
 
 
 INSERT INTO `projectnest_database`.`myapp_project`
-(`project_id`,`title`,`description`,`status`,`is_public`,`create_at`,`update_at`)
+(`project_id`,`title`,`description`,`status`,`is_public`,`create_at`,`update_at`,`deadline`,`progress`)
 VALUES
-(1,'Astral Express - Trailblaze','After the Aeon Akivili of "Trailblaze" fell, the followers continue to blaze the trail.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(2,'Stellaron Hunters','A group of people who refuse to be slaves of "Fate".','done','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(3,'Xianzhou Alliance','Composed of six Xianzhou ships, carrying out the will of "The Hunt".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(4,'Interastral Rangers','Not all followers of "The Hunt" are enemies of "Abundance", this group has their own code of good and evil.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(5,'The Family','Under the protection of "Harmony", this group of believers comes from different worlds or civilizations.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(6,'Genius Society','Invited by "Erudition", a group exploring the answers of the universe together.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(7,'Intelligentsia Guild','Few can join the "Genius Society", but the "Intelligentsia Guild" accepts anyone who pursues knowledge.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(8,'The Corporation','A conglomerate walking the path of "Preservation", most galactic business is built on it, led by the Ten Stonehearts.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(9,'Garden of Recollection','"Thought is existence", followers of "Remembrance" strive for eternity by preserving memories.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(10,'The Tavern','A motley crew, a group of people who worship "Elation".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(11,'Knights of Beauty','A group who admire classical beauty, following "Beauty" Idrila.','done','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(12,'Journey of the Flames','Actions taken by the golden-blooded of Ompalos in pursuit of their goals.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(13,'Fictitious Historians','Followers of "Fictitious", dedicated to erasing correct historical records.','pending','0','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(14,'Herta Space Station','Herta’s collection space station, formed by Herta’s fans.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(15,'Jarilo-VI','A planet frozen due to the influence of the Stellaron.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00'),
-(16,'Self-Annihilators','Followers of the path of "Nihility".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00');
+(1,'Astral Express - Trailblaze','After the Aeon Akivili of "Trailblaze" fell, the followers continue to blaze the trail.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',0),
+(2,'Stellaron Hunters','A group of people who refuse to be slaves of "Fate".','done','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',20),
+(3,'Xianzhou Alliance','Composed of six Xianzhou ships, carrying out the will of "The Hunt".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',30),
+(4,'Interastral Rangers','Not all followers of "The Hunt" are enemies of "Abundance", this group has their own code of good and evil.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',40),
+(5,'The Family','Under the protection of "Harmony", this group of believers comes from different worlds or civilizations.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',50),
+(6,'Genius Society','Invited by "Erudition", a group exploring the answers of the universe together.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',60),
+(7,'Intelligentsia Guild','Few can join the "Genius Society", but the "Intelligentsia Guild" accepts anyone who pursues knowledge.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',70),
+(8,'The Corporation','A conglomerate walking the path of "Preservation", most galactic business is built on it, led by the Ten Stonehearts.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',80),
+(9,'Garden of Recollection','"Thought is existence", followers of "Remembrance" strive for eternity by preserving memories.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',90),
+(10,'The Tavern','A motley crew, a group of people who worship "Elation".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',100),
+(11,'Knights of Beauty','A group who admire classical beauty, following "Beauty" Idrila.','done','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',70),
+(12,'Journey of the Flames','Actions taken by the golden-blooded of Ompalos in pursuit of their goals.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',50),
+(13,'Fictitious Historians','Followers of "Fictitious", dedicated to erasing correct historical records.','pending','0','2023-04-26 08:00:00','2025-07-01 00:00:00','2023-04-26 08:00:00',20),
+(14,'Herta Space Station','Herta’s collection space station, formed by Herta’s fans.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',90),
+(15,'Jarilo-VI','A planet frozen due to the influence of the Stellaron.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',60),
+(16,'Self-Annihilators','Followers of the path of "Nihility".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',30);
 
 INSERT INTO `projectnest_database`.`myapp_projectuser`
 (`id`,`project_id`,`user_id`)

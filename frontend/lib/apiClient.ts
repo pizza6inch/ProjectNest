@@ -107,7 +107,10 @@ export interface Project {
   status: string;
   deadline: string;
   progress: number;
-  professor: string;
+  professor_user: {
+    name: string;
+    user_id: string;
+  };
   update_at: string;
   description: string;
   create_at: string;

@@ -2,7 +2,18 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, FolderKanban, User, LogOut, Search, Settings, Users, Shield, Sun, Moon } from "lucide-react";
+import {
+  Home,
+  FolderKanban,
+  User,
+  LogOut,
+  Search,
+  Settings,
+  Users,
+  Shield,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "next-themes";
 
@@ -22,7 +33,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "./ui/badge";
 
 export function AppSidebar() {
@@ -66,16 +76,22 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {user && (user.role === "student" || user.role === "professor" || user.role === "admin") && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                    <Link href="/dashboard">
-                      <User className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
+              {user &&
+                (user.role === "student" ||
+                  user.role === "professor" ||
+                  user.role === "admin") && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive("/dashboard")}
+                    >
+                      <Link href="/dashboard">
+                        <User className="h-4 w-4" />
+                        <span>Dashboard</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               {!user && (
                 <>
                   <SidebarMenuItem>
@@ -100,35 +116,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* <SidebarGroup>
-          <SidebarGroupLabel>Filters</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/?status=in-progress">
-                    <span>In Progress</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/?status=completed">
-                    <span>Completed</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/?status=pending">
-                    <span>Pending</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup> */}
-
         {isAdmin && (
           <>
             <SidebarSeparator />
@@ -136,7 +123,10 @@ export function AppSidebar() {
               <SidebarGroupLabel>
                 <span className="flex items-center gap-2">
                   Admin
-                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-red-50 text-red-700 border-red-200"
+                  >
                     Admin Only
                   </Badge>
                 </span>
@@ -159,10 +149,13 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t p-2">
         <div className="flex items-center gap-2 p-2">
-          {user && (
+          {user && user.name && (
             <>
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar || "/placeholder-user.jpg"} alt={user.name} />
+                <AvatarImage
+                  src={user.image_url || "/placeholder-user.jpg"}
+                  alt={user.name}
+                />
                 <AvatarFallback>
                   {user.name
                     .split(" ")
@@ -172,9 +165,16 @@ export function AppSidebar() {
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{user.name}</span>
-                <span className="text-xs text-muted-foreground">{user.role}</span>
+                <span className="text-xs text-muted-foreground">
+                  {user.role}
+                </span>
               </div>
-              <Button variant="ghost" size="icon" className="ml-auto" onClick={logout}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-auto"
+                onClick={logout}
+              >
                 <LogOut className="h-4 w-4" />
                 <span className="sr-only">Log out</span>
               </Button>
@@ -186,7 +186,11 @@ export function AppSidebar() {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </SidebarFooter>

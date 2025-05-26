@@ -28,9 +28,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     user_count = serializers.IntegerField(read_only=True)
+    professor_user = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
-        fields = "__all__"
+        fields = [
+            "project_id",
+            "title",
+            "description",
+            "status",
+            "is_public",
+            "create_at",
+            "update_at",
+            "user_count",
+            "professor_user",
+            "deadline",
+            "progress",
+        ]
+
+    def get_professor_user(self, obj):
+        # Get the professor user related to this project
+        project_users = obj.projectuser_set.filter(user__role="professor").select_related("user")
+        if project_users.exists():
+            user = project_users.first().user
+            return UserSerializer(user).data
+        return None
 
 class ProjectProgressSerializer(serializers.ModelSerializer):
     class Meta:

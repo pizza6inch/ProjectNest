@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 import { Input } from "@/components/ui/input";
 
@@ -56,6 +56,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 
 import RoleBadge from "@/components/role-badge";
 import StatusBadge from "@/components/status-badge";
@@ -65,6 +66,7 @@ import { Eye } from "lucide-react";
 import Link from "next/link";
 
 import {
+  getUserById,
   getProjects,
   createProject,
   updateProject,
@@ -75,22 +77,6 @@ import {
 import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardStats } from "@/hooks/dashBoardStatsContext";
-
-const get_member_by_id = async (memberId) => {
-  // Simulate delay
-  await new Promise((r) => setTimeout(r, 500));
-  // Dummy data based on memberId
-  if (!memberId) throw new Error("Invalid member ID");
-  return {
-    user_id: memberId,
-    name: `Member Name ${memberId}`,
-    email: `${memberId}@school.edu`,
-    role: "student",
-    image_url: `https://api.adorable.io/avatars/285/${memberId}.png`,
-    create_at: new Date().toISOString(),
-    update_at: new Date().toISOString(),
-  };
-};
 
 export default function ProjectTab() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -103,7 +89,6 @@ export default function ProjectTab() {
   const [isEditProjectDialogOpen, setIsEditProjectDialogOpen] = useState(false);
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  // const [members, setMembers] = useState([""]); // 初始有一个空的 member_id
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -149,10 +134,12 @@ export default function ProjectTab() {
     setMembers(newMembers);
 
     try {
-      const data = await get_member_by_id(memberId);
-      newMembers[index].data = data;
+      const user = await getUserById(memberId);
+
+      // const data = await get_member_by_id(memberId);
+      newMembers[index].data = user;
     } catch (error) {
-      newMembers[index].error = "Member not found";
+      newMembers[index].error = "User not found";
     } finally {
       newMembers[index].loading = false;
       setMembers([...newMembers]);
@@ -163,7 +150,7 @@ export default function ProjectTab() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("");
-  const [groupMembers, setGroupMembers] = useState<User[]>([]);
+  const [deadline, setDeadline] = useState("");
 
   const [itemsPerPage] = useState(10); // 10 items per page for tables
 
@@ -173,6 +160,7 @@ export default function ProjectTab() {
         status: projectStatusFilter !== "all" ? projectStatusFilter : undefined,
         page: currentProjectPage,
         pageSize: itemsPerPage,
+        keyword: projectSearchQuery,
       });
 
       setProjects(response.results);
@@ -184,7 +172,14 @@ export default function ProjectTab() {
   };
 
   const handleAddProject = async () => {
-    if (!title || !description || !status || groupMembers.length === 0) {
+    console.log("data", {
+      title,
+      description,
+      status,
+      deadline,
+      members,
+    });
+    if (!title || !description || !status || members.length === 0) {
       toast({
         title: "Add Project Error",
         description: "All fields are required",
@@ -194,8 +189,15 @@ export default function ProjectTab() {
 
     try {
       setIsLoading(true);
-      // TODO::等候端
-      await createProject({ user_id: userId, name, email, password, role });
+
+      await createProject({
+        title,
+        status,
+        deadline,
+        progress: 0,
+        description,
+        users: members.map((m) => m.data?.user_id || ""),
+      });
 
       setIsAddProjectDialogOpen(false);
       toast({ title: "Add Project Success" });
@@ -208,7 +210,7 @@ export default function ProjectTab() {
   };
 
   const handleEditProject = async () => {
-    if (!title || !description || !status || groupMembers.length === 0) {
+    if (!title || !description || !status || members.length === 0) {
       toast({
         title: "Edit Project Error",
         description: "All fields are required",
@@ -219,7 +221,15 @@ export default function ProjectTab() {
     try {
       setIsLoading(true);
 
-      await updateProject({ user_id: userId, name, email, password, role });
+      await updateProject({
+        project_id: selectedProject?.project_id || "",
+        title,
+        description,
+        status,
+        deadline,
+        progress: selectedProject?.progress || 0,
+        users: members.map((m) => m.data?.user_id || ""),
+      });
 
       toast({ title: "Edit Project Success" });
       setIsEditProjectDialogOpen(false);
@@ -258,7 +268,7 @@ export default function ProjectTab() {
     setTitle("");
     setDescription("");
     setStatus("");
-    setGroupMembers([]);
+    setMembers([]);
   }, [isAddProjectDialogOpen]);
 
   useEffect(() => {
@@ -266,7 +276,17 @@ export default function ProjectTab() {
       setTitle(selectedProject?.title);
       setDescription(selectedProject?.description);
       setStatus(selectedProject?.status);
-      // setGroupMembers(selectedProject?.groupMembers);
+      setDeadline(selectedProject?.deadline || "");
+
+      // TODO:fetch member只能用detail API 所以等後端
+      // setMembers(
+      //   selectedProject?.users.map((user) => ({
+      //     id: user.user_id || "",
+      //     data: user,
+      //     loading: false,
+      //     error: null,
+      //   })) || []
+      // );
     }
   }, [selectedProject]);
 
@@ -277,7 +297,7 @@ export default function ProjectTab() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentProjectPage(1);
-  }, [projectSearchQuery, projectStatusFilter]);
+  }, [projectStatusFilter]);
 
   return (
     <>
@@ -301,6 +321,15 @@ export default function ProjectTab() {
                   onChange={(e) => setProjectSearchQuery(e.target.value)}
                 />
               </div>
+              <Button
+                onClick={() => {
+                  setCurrentProjectPage(1);
+                  fetchProjects();
+                }}
+                className="h-10 self-center"
+              >
+                Search
+              </Button>
               <div className="flex gap-2 w-full sm:w-auto">
                 <Select
                   value={projectStatusFilter}
@@ -328,7 +357,7 @@ export default function ProjectTab() {
                       Add Project
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Project</DialogTitle>
                       <DialogDescription>
@@ -373,6 +402,27 @@ export default function ProjectTab() {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="deadline" className="text-right">
+                          Deadline
+                        </Label>
+                        <div className="col-span-3">
+                          <Calendar
+                            mode="single"
+                            selected={deadline ? new Date(deadline) : undefined}
+                            onSelect={(date) =>
+                              setDeadline(date ? date.toISOString() : "")
+                            }
+                            disabled={isLoading}
+                          />
+                          {deadline && (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              Selected date:{" "}
+                              {new Date(deadline).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Members input with preview */}
                       <div className="grid grid-cols-4 items-start gap-4">
@@ -409,17 +459,32 @@ export default function ProjectTab() {
                                   {member.error}
                                 </p>
                               )}
-                              {member.data && (
-                                <div className="bg-gray-50 p-2 rounded text-sm">
-                                  <p>
-                                    <strong>Name:</strong> {member.data.name}
-                                  </p>
-                                  <p>
-                                    <strong>id:</strong> {member.data.user_id}
-                                  </p>
-                                  <p>
-                                    <strong>Email:</strong> {member.data.email}
-                                  </p>
+                              {member.data && member.data.name && (
+                                <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage
+                                      src={
+                                        member.data.image_url ||
+                                        "/placeholder-user.jpg"
+                                      }
+                                      alt={member.data.name}
+                                    />
+                                    <AvatarFallback>
+                                      {member.data.name
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">
+                                      {member.data.name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {member.data.role}
+                                    </span>
+                                  </div>
+                                  <span className="">{member.data.email}</span>
                                 </div>
                               )}
                             </div>
@@ -468,18 +533,22 @@ export default function ProjectTab() {
                     projects.map((project) => (
                       <TableRow key={project.project_id}>
                         <TableCell>
-                          <div className="font-medium">{project.title}</div>
-                          <div className="text-xs text-muted-foreground">
-                            ID: {project.project_id}
-                          </div>
+                          <Link href={`/projects/${project.project_id}`}>
+                            <div className="font-medium">{project.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              ID: {project.project_id}
+                            </div>
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={project.status} />
                         </TableCell>
-                        <TableCell>{project.professor}</TableCell>
-                        {/* TODO::等候端 */}
-                        {/* <TableCell>{project.memberCount}</TableCell> */}
-                        <TableCell>{6}</TableCell>
+                        <TableCell>
+                          {project.professor_user
+                            ? project.professor_user.name
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>{project.user_count}</TableCell>
                         <TableCell>
                           {new Date(project.deadline).toLocaleDateString()}
                         </TableCell>
@@ -557,7 +626,7 @@ export default function ProjectTab() {
         open={isEditProjectDialogOpen}
         onOpenChange={setIsEditProjectDialogOpen}
       >
-        <DialogContent>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
@@ -586,27 +655,7 @@ export default function ProjectTab() {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </div>
-            {/* <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="email" className="text-right">
-                          Email
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          className="col-span-3"
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="password" className="text-right">
-                          Password
-                        </Label>
-                        <Input
-                          id="password"
-                          className="col-span-3"
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
-                      </div> */}
+
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
                 Status
@@ -622,6 +671,94 @@ export default function ProjectTab() {
                   <SelectItem value="pending">Pending</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deadline" className="text-right">
+                Deadline
+              </Label>
+              <div className="col-span-3">
+                <Calendar
+                  mode="single"
+                  selected={deadline ? new Date(deadline) : undefined}
+                  onSelect={(date) =>
+                    setDeadline(date ? date.toISOString() : "")
+                  }
+                  disabled={isLoading}
+                />
+                {deadline && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Selected date: {new Date(deadline).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Members input with preview */}
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">Members</Label>
+              <div className="col-span-3 space-y-4">
+                {members.map((member, index) => (
+                  <div key={index} className="border rounded p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        placeholder="Enter member ID"
+                        value={member.id}
+                        onChange={(e) =>
+                          handleMemberChange(index, e.target.value)
+                        }
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => confirmMemberId(index)}
+                        disabled={member.loading}
+                      >
+                        {member.loading ? "Loading..." : "Confirm"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => removeMember(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                    {member.error && (
+                      <p className="text-red-600 text-sm">{member.error}</p>
+                    )}
+                    {member.data && member.data.name && (
+                      <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={
+                              member.data.image_url || "/placeholder-user.jpg"
+                            }
+                            alt={member.data.name}
+                          />
+                          <AvatarFallback>
+                            {member.data.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {member.data.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {member.data.role}
+                          </span>
+                        </div>
+                        <span className="">{member.data.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addMember}>
+                  Add Member
+                </Button>
+              </div>
             </div>
           </div>
           <DialogFooter>

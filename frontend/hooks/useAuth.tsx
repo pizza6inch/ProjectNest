@@ -30,10 +30,11 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (
+    student_id: string,
     name: string,
     email: string,
     password: string,
-    role: UserRole
+    role: string
   ) => Promise<void>;
   logout: () => void;
   loading: boolean;
@@ -50,8 +51,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // On mount, check if user info is stored in localStorage (simulate session)
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      // Decode the token to get user info
+      const decodedToken: DecodedToken = jwtDecode(storedUser);
+      const userData: User = {
+        user_id: decodedToken.user_id,
+        name: decodedToken.name,
+        role: decodedToken.role,
+        image_url: decodedToken.img_url,
+      };
+      setUser(userData);
     } else {
       setUser(null);
     }
@@ -64,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await getToken({ user_id: student_id, password });
 
       console.log("Login response:", response);
-      // setUser(response);
+
       localStorage.setItem("user", JSON.stringify(response.token));
       const decodedToken: DecodedToken = jwtDecode(response.token);
       const userData: User = {
@@ -106,6 +116,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ) => {
     setLoading(true);
     try {
+      // Assume student_id is the same as email for registration, or adjust as needed
+      // const student_id = student_id;
       await createUser({
         user_id: student_id,
         name,
@@ -113,11 +125,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         role,
       });
+      await login(student_id, password);
     } catch (error) {
       console.error("Registration failed", error);
       throw error;
     } finally {
-      await login(student_id, password);
       setLoading(false);
     }
   };

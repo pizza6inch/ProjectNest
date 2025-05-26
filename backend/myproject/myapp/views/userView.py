@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status, viewsets
 from django.core.paginator import Paginator
+from myapp.authenticate import IsJwtTokenValid
 
 from django.db.models import Q
 from myapp.models import User
@@ -65,6 +66,10 @@ class UserListAPIView(viewsets.ModelViewSet):
     # 新增使用者
     @action(detail=False, methods=["post"])
     def create_user(self, request):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
+        
         serializer = UserSerializer(data=request.data)
         print(request.data, serializer)
         if serializer.is_valid():
@@ -75,6 +80,12 @@ class UserListAPIView(viewsets.ModelViewSet):
     # 更新使用者
     @action(detail=True, methods=["put"])
     def update_user(self, request, pk=None):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
+        elif payload.get("role") != "admin" and payload.get("user_id") != pk:
+            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+
         try:
             user = User.objects.get(user_id=pk)
             serializer = UserSerializer(user, data=request.data)
@@ -88,6 +99,12 @@ class UserListAPIView(viewsets.ModelViewSet):
     # 刪除使用者
     @action(detail=True, methods=["delete"])
     def delete_user(self, request, pk=None):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
+        elif payload.get("role") != "admin" and payload.get("user_id") != pk:
+            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+        
         try:
             user = User.objects.get(user_id=pk)
             user.delete()

@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status as st, viewsets
 from django.core.paginator import Paginator
+from myapp.authenticate import IsJwtTokenValid
 
 from myapp.models import ProjectUser, User, Project, ProjectProgress, Comment
 from myapp.serializers import ProjectUserSerializer, ProjectSerializer, ProjectProgressSerializer
@@ -10,6 +11,12 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
     # 查詢使用者所有關聯專案
     @action(detail=True, methods=["get"], url_path="my_projects")
     def my_projects(self, request, pk=None):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=st.HTTP_401_UNAUTHORIZED)
+        elif payload.get("role") != "admin" and payload.get("user_id") != pk:
+            return Response({"error": "Permission denied"}, status=st.HTTP_403_FORBIDDEN)
+
         try:
             user = User.objects.get(user_id=pk)
         except User.DoesNotExist:

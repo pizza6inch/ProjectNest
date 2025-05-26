@@ -2,6 +2,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status as st, viewsets
 from django.core.paginator import Paginator
+from myapp.authenticate import IsJwtTokenValid
 
 from django.db import transaction
 from django.db.models import Q, Count
@@ -59,6 +60,10 @@ class ProjectListAPIView(viewsets.ModelViewSet):
     # 新增專案
     @action(detail=False, methods=["post"])
     def create_project(self, request):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=st.HTTP_401_UNAUTHORIZED)
+
         users = request.data.pop("users", [])
 
         project_serializer = ProjectSerializer(data=request.data)
@@ -89,6 +94,15 @@ class ProjectListAPIView(viewsets.ModelViewSet):
     # 更新專案
     @action(detail=True, methods=["put"])
     def update_project(self, request, pk=None):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=st.HTTP_401_UNAUTHORIZED)
+        print(payload.get("role"), payload.get("user_id"), pk)
+        is_member = ProjectUser.objects.filter(user_id=payload.get("user_id"), project=pk).exists()
+        
+        if payload.get("role") != "admin" and not is_member:
+            return Response({"error": "Permission denied"}, status=st.HTTP_403_FORBIDDEN)
+        
         try:
             project = Project.objects.get(project_id=pk)
         except Project.DoesNotExist:
@@ -124,6 +138,15 @@ class ProjectListAPIView(viewsets.ModelViewSet):
     # 刪除專案
     @action(detail=True, methods=["delete"])   
     def delete_project(self, request, pk=None):
+        valid, payload = IsJwtTokenValid(request)
+        if not valid:
+            return Response({"error": payload}, status=st.HTTP_401_UNAUTHORIZED)
+        print(payload.get("role"), payload.get("user_id"), pk)
+        is_member = ProjectUser.objects.filter(user_id=payload.get("user_id"), project=pk).exists()
+        
+        if payload.get("role") != "admin" and not is_member:
+            return Response({"error": "Permission denied"}, status=st.HTTP_403_FORBIDDEN)
+        
         try:
             project = Project.objects.get(project_id=pk)
 

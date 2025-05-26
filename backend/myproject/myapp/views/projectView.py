@@ -29,7 +29,7 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         )
 
         # 過濾 status
-        if status in ["done", "pending"]:
+        if status in ["done", "pending","in_progress"]:
             projects = projects.filter(status=status)
 
         # 關鍵字模糊搜尋 title 和 description

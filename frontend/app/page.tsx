@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Clock4,
   User,
-  Calendar,
+  Calendar as CalendarIcon,
+  Plus,
   MoreHorizontal,
 } from "lucide-react";
 
@@ -51,196 +52,28 @@ import {
 } from "@/lib/apiClient";
 
 import StatusBadge from "@/components/status-badge";
-// Mock data for projects
-// const projects = [
-//   {
-//     id: "1",
-//     title: "Machine Learning Algorithm Comparison",
-//     status: "in-progress",
-//     deadline: "2025-06-15",
-//     progress: 65,
-//     teamLead: {
-//       name: "Sarah Johnson",
-//       avatar: "/placeholder-user.jpg",
-//       initials: "SJ",
-//     },
-//     professor: "Dr. Williams",
-//     members: [
-//       {
-//         name: "Sarah Johnson",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "SJ",
-//         role: "Team Lead",
-//       },
-//       {
-//         name: "Alex Thompson",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "AT",
-//         role: "Student",
-//       },
-//       {
-//         name: "Maya Patel",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "MP",
-//         role: "Student",
-//       },
-//     ],
-//     lastUpdated: "2 days ago",
-//   },
-//   {
-//     id: "2",
-//     title: "Web Application Security Analysis",
-//     status: "pending",
-//     deadline: "2025-07-01",
-//     progress: 10,
-//     teamLead: {
-//       name: "Michael Chen",
-//       avatar: "/placeholder-user.jpg",
-//       initials: "MC",
-//     },
-//     professor: "Dr. Garcia",
-//     members: [
-//       {
-//         name: "Michael Chen",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "MC",
-//         role: "Team Lead",
-//       },
-//       {
-//         name: "Lisa Wang",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "LW",
-//         role: "Student",
-//       },
-//     ],
-//     lastUpdated: "5 days ago",
-//   },
-//   {
-//     id: "3",
-//     title: "Database Optimization Techniques",
-//     status: "completed",
-//     deadline: "2025-05-20",
-//     progress: 100,
-//     teamLead: {
-//       name: "Emily Rodriguez",
-//       avatar: "/placeholder-user.jpg",
-//       initials: "ER",
-//     },
-//     professor: "Dr. Williams",
-//     members: [
-//       {
-//         name: "Emily Rodriguez",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "ER",
-//         role: "Team Lead",
-//       },
-//       {
-//         name: "Daniel Park",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "DP",
-//         role: "Student",
-//       },
-//       {
-//         name: "Sophia Lee",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "SL",
-//         role: "Student",
-//       },
-//     ],
-//     lastUpdated: "1 week ago",
-//   },
-//   {
-//     id: "4",
-//     title: "Mobile App Development for Campus Services",
-//     status: "in-progress",
-//     deadline: "2025-06-30",
-//     progress: 45,
-//     teamLead: {
-//       name: "David Kim",
-//       avatar: "/placeholder-user.jpg",
-//       initials: "DK",
-//     },
-//     professor: "Dr. Garcia",
-//     members: [
-//       {
-//         name: "David Kim",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "DK",
-//         role: "Team Lead",
-//       },
-//       {
-//         name: "Rachel Chen",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "RC",
-//         role: "Student",
-//       },
-//     ],
-//     lastUpdated: "3 days ago",
-//   },
-//   {
-//     id: "5",
-//     title: "Natural Language Processing Research",
-//     status: "in-progress",
-//     deadline: "2025-07-15",
-//     progress: 30,
-//     teamLead: {
-//       name: "Olivia Smith",
-//       avatar: "/placeholder-user.jpg",
-//       initials: "OS",
-//     },
-//     professor: "Dr. Williams",
-//     members: [
-//       {
-//         name: "Olivia Smith",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "OS",
-//         role: "Team Lead",
-//       },
-//       {
-//         name: "James Wilson",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "JW",
-//         role: "Student",
-//       },
-//     ],
-//     lastUpdated: "1 day ago",
-//   },
-//   {
-//     id: "6",
-//     title: "Cloud Infrastructure Deployment",
-//     status: "pending",
-//     deadline: "2025-08-01",
-//     progress: 5,
-//     teamLead: {
-//       name: "James Wilson",
-//       avatar: "/placeholder-user.jpg",
-//       initials: "JW",
-//     },
-//     professor: "Dr. Garcia",
-//     members: [
-//       {
-//         name: "James Wilson",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "JW",
-//         role: "Team Lead",
-//       },
-//       {
-//         name: "Emma Davis",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "ED",
-//         role: "Student",
-//       },
-//       {
-//         name: "Noah Martinez",
-//         avatar: "/placeholder-user.jpg",
-//         initials: "NM",
-//         role: "Student",
-//       },
-//     ],
-//     lastUpdated: "1 week ago",
-//   },
-// ]
+
 import Pagination from "@/components/pagination";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+
+import { Loader2 } from "lucide-react";
+import { getUserById, createProject } from "@/lib/apiClient";
+import { User as UserType } from "@/lib/types";
+
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -250,10 +83,124 @@ export default function HomePage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6); // 6 items per page (2 rows of 3 cards)
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [totalProjectsCount, setTotalProjectsCount] = useState(0);
+
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Add Project Dialog State
+  const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("in_progress");
+  const [deadline, setDeadline] = useState("");
+
+  const [members, setMembers] = useState<
+    {
+      id: string;
+      data: UserType | null;
+      loading: boolean;
+      error: string | null;
+    }[]
+  >([{ id: "", data: null, loading: false, error: null }]);
+
+  const addMember = () => {
+    setMembers([
+      ...members,
+      { id: "", data: null, loading: false, error: null },
+    ]);
+  };
+
+  const removeMember = (index: number) => {
+    setMembers(members.filter((_, i) => i !== index));
+  };
+
+  const handleMemberChange = (index: number, value: string) => {
+    const newMembers = [...members];
+    newMembers[index].id = value;
+    newMembers[index].data = null;
+    newMembers[index].error = null;
+    setMembers(newMembers);
+  };
+
+  const confirmMemberId = async (index: number) => {
+    const memberId = members[index].id.trim();
+    if (!memberId) return;
+    const newMembers = [...members];
+    newMembers[index].loading = true;
+    newMembers[index].error = null;
+    newMembers[index].data = null;
+    setMembers(newMembers);
+
+    try {
+      const user = await getUserById(memberId);
+
+      // const data = await get_member_by_id(memberId);
+      newMembers[index].data = user;
+    } catch (error) {
+      newMembers[index].error = "User not found";
+    } finally {
+      newMembers[index].loading = false;
+      setMembers([...newMembers]);
+    }
+  };
+
+  const handleOpenAddProjectDialog = () => {
+    if (user?.role === null || user?.role === undefined) {
+      toast({
+        title: "Add Project Error",
+        description: "You must be logged in to add a project",
+      });
+      console.log("User not logged in or role is undefined");
+
+      return;
+    }
+    setIsAddProjectDialogOpen(true);
+  };
+
+  const handleAddProject = async () => {
+    if (isLoading) return; // Prevent multiple submissions
+
+    if (user?.role === null || user?.role === undefined) {
+      toast({
+        title: "Add Project Error",
+        description: "You must be logged in to add a project",
+      });
+      return;
+    }
+
+    if (!title || !description || !status || members.length === 0) {
+      toast({
+        title: "Add Project Error",
+        description: "All fields are required",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await createProject({
+        title,
+        status,
+        deadline,
+        progress: 0,
+        description,
+        users: members.map((m) => m.data?.user_id || ""),
+      });
+
+      setIsAddProjectDialogOpen(false);
+      toast({ title: "Add Project Success" });
+      fetchProjects();
+    } catch (err) {
+      toast({ title: "Add Project Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -262,6 +209,7 @@ export default function HomePage() {
         page: currentPage,
         pageSize: itemsPerPage,
         keyword: searchQuery,
+        sort_by: sortBy,
       });
 
       setProjects(response.results);
@@ -276,7 +224,7 @@ export default function HomePage() {
   useEffect(() => {
     setCurrentPage(1);
     fetchProjects();
-  }, [statusFilter, professorFilter, sortBy, professorFilter]);
+  }, [statusFilter, sortBy, professorFilter]);
 
   useEffect(() => {
     fetchProjects();
@@ -292,7 +240,10 @@ export default function HomePage() {
               Browse and manage all academic projects
             </p>
           </div>
-          <Button>Create New Project</Button>
+          <Button onClick={() => handleOpenAddProjectDialog()}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Project
+          </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -306,6 +257,15 @@ export default function HomePage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <Button
+            onClick={() => {
+              setCurrentPage(1);
+              fetchProjects();
+            }}
+            className="h-10 self-center"
+          >
+            Search
+          </Button>
 
           <div className="flex flex-wrap gap-2">
             <DropdownMenu>
@@ -328,27 +288,9 @@ export default function HomePage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="done">Done</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium mb-1">Professor</p>
-                    <Select
-                      value={professorFilter}
-                      onValueChange={setprofessorFilter}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select professor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Professors</SelectItem>
-                        <SelectItem value="Dr. Williams">
-                          Dr. Williams
-                        </SelectItem>
-                        <SelectItem value="Dr. Garcia">Dr. Garcia</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -431,7 +373,7 @@ export default function HomePage() {
                       <span>Members: {project.user_count}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
+                      <CalendarIcon className="h-4 w-4" />
                       <span>
                         Deadline:{" "}
                         {new Date(project.deadline).toLocaleDateString()}
@@ -439,35 +381,38 @@ export default function HomePage() {
                     </div>
                   </div>
                 </CardContent>
-                {project.professor_user && (
-                  <CardFooter className="pt-2">
-                    <div className="flex items-center gap-2 w-full">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={
-                            project.professor_user.user_id || "/placeholder.svg"
-                          }
-                          alt={project.professor_user.name}
-                        />
-                        <AvatarFallback>
-                          {project.professor_user.name}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {project.professor_user.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Professor
-                        </span>
-                      </div>
-                      <div className="ml-auto flex items-center text-xs text-muted-foreground">
-                        <Clock className="mr-1 h-3 w-3" />
-                        {project.update_at}
-                      </div>
+                <CardFooter className="pt-2">
+                  <div className="flex items-center gap-2 w-full">
+                    {project.professor_user && (
+                      <>
+                        <Avatar className="h-8 w-8">
+                          {/* <AvatarImage
+                            src={
+                              project.professor_user.user_id ||
+                              "/placeholder.svg"
+                            }
+                            alt={project.professor_user.name}
+                          /> */}
+                          <AvatarFallback>
+                            {project.professor_user.name}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {project.professor_user.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Professor
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    <div className="ml-auto flex items-center text-xs text-muted-foreground">
+                      <Clock className="mr-1 h-3 w-3" />
+                      Create At {project.create_at}
                     </div>
-                  </CardFooter>
-                )}
+                  </div>
+                </CardFooter>
               </Card>
             </Link>
           ))}
@@ -559,6 +504,164 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* add project dialog */}
+      <Dialog
+        open={isAddProjectDialogOpen}
+        onOpenChange={setIsAddProjectDialogOpen}
+      >
+        <DialogTrigger asChild>
+          {/* <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Project
+          </Button> */}
+        </DialogTrigger>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Project</DialogTitle>
+            <DialogDescription>
+              Create a new project in the system.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project_title" className="text-right">
+                Project Title
+              </Label>
+              <Input
+                id="project_title"
+                onChange={(e) => setTitle(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Input
+                id="description"
+                onChange={(e) => setDescription(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <Select onValueChange={(value) => setStatus(value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="in_progress">In-Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deadline" className="text-right">
+                Deadline
+              </Label>
+              <div className="col-span-3">
+                <Calendar
+                  mode="single"
+                  selected={deadline ? new Date(deadline) : undefined}
+                  onSelect={(date) =>
+                    setDeadline(date ? date.toISOString() : "")
+                  }
+                  disabled={isLoading}
+                />
+                {deadline && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Selected date: {new Date(deadline).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Members input with preview */}
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">Members</Label>
+              <div className="col-span-3 space-y-4">
+                {members.map((member, index) => (
+                  <div key={index} className="border rounded p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        placeholder="Enter member ID"
+                        value={member.id}
+                        onChange={(e) =>
+                          handleMemberChange(index, e.target.value)
+                        }
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => confirmMemberId(index)}
+                        disabled={member.loading}
+                      >
+                        {member.loading ? "Loading..." : "Confirm"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => removeMember(index)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                    {member.error && (
+                      <p className="text-red-600 text-sm">{member.error}</p>
+                    )}
+                    {member.data && member.data.name && (
+                      <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={
+                              member.data.image_url || "/placeholder-user.jpg"
+                            }
+                            alt={member.data.name}
+                          />
+                          <AvatarFallback>
+                            {member.data.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {member.data.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {member.data.role}
+                          </span>
+                        </div>
+                        <span className="">{member.data.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addMember}>
+                  Add Member
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Creating...
+              </Button>
+            ) : (
+              <Button onClick={() => handleAddProject()} type="submit">
+                Create Project
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

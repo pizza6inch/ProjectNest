@@ -10,7 +10,7 @@ export default function StatusBadge({ status }: { status: string }) {
           Completed
         </Badge>
       );
-    case "in-progress":
+    case "in_progress":
       return (
         <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
           <Clock4 className="mr-1 h-3 w-3" />
@@ -24,11 +24,11 @@ export default function StatusBadge({ status }: { status: string }) {
           Pending
         </Badge>
       );
-    case "active":
+    case "done":
       return (
         <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
           <CheckCircle2 className="mr-1 h-3 w-3" />
-          Active
+          Done
         </Badge>
       );
     case "inactive":

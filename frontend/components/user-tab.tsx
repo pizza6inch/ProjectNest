@@ -98,6 +98,7 @@ export default function UserTab() {
         role: userRoleFilter !== "all" ? userRoleFilter : undefined,
         page: currentUserPage,
         pageSize: itemsPerPage,
+        keyword: userSearchQuery,
       });
 
       setUsers(response.results);
@@ -175,7 +176,7 @@ export default function UserTab() {
     try {
       setIsLoading(true);
 
-      await deleteUser(selectedUser?.user_id);
+      await deleteUser(selectedUser?.user_id || "");
 
       toast({ title: "Delete User Success" });
       setIsDeleteUserDialogOpen(false);
@@ -198,10 +199,10 @@ export default function UserTab() {
 
   useEffect(() => {
     if (selectedUser) {
-      setUserId(selectedUser?.user_id);
-      setName(selectedUser?.name);
-      setEmail(selectedUser?.email);
-      setRole(selectedUser?.role);
+      setUserId(selectedUser?.user_id || "");
+      setName(selectedUser?.name || "");
+      setEmail(selectedUser?.email || "");
+      setRole(selectedUser?.role || "");
       setPassword("");
     }
   }, [selectedUser]);
@@ -213,7 +214,7 @@ export default function UserTab() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentUserPage(1);
-  }, [userSearchQuery, userRoleFilter]);
+  }, [userRoleFilter]);
 
   return (
     <>
@@ -237,6 +238,15 @@ export default function UserTab() {
                   onChange={(e) => setUserSearchQuery(e.target.value)}
                 />
               </div>
+              <Button
+                onClick={() => {
+                  setCurrentUserPage(1);
+                  fetchUsers();
+                }}
+                className="h-10 self-center"
+              >
+                Search
+              </Button>
               <div className="flex gap-2 w-full sm:w-auto">
                 <Select
                   value={userRoleFilter}
@@ -263,7 +273,7 @@ export default function UserTab() {
                       Add User
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New User</DialogTitle>
                       <DialogDescription>
@@ -380,7 +390,7 @@ export default function UserTab() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <RoleBadge role={user.role} />
+                          <RoleBadge role={user.role || ""} />
                         </TableCell>
                         <TableCell>{user.user_id}</TableCell>
                         <TableCell>{user.create_at}</TableCell>
@@ -443,7 +453,7 @@ export default function UserTab() {
         open={isEditUserDialogOpen}
         onOpenChange={setIsEditUserDialogOpen}
       >
-        <DialogContent>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>

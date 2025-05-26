@@ -120,6 +120,7 @@ export interface Project {
   update_at: string;
   description: string;
   create_at: string;
+  user_count: number;
 }
 
 export interface GetProjectsResponse {
@@ -131,7 +132,7 @@ export interface GetProjectsResponse {
 
 export const getProjects = async (params: {
   status?: string;
-  keywords?: string;
+  keyword?: string;
   sort_by?: string;
   page?: number;
   pageSize?: number;
@@ -140,6 +141,17 @@ export const getProjects = async (params: {
     params,
   });
   console.log("getProjects API");
+  return response.data;
+};
+
+// TODO: 等後端
+export const getProjectById = async (params: {
+  project_id: string;
+}): Promise<Project> => {
+  const response = await apiClient.get<Project>(
+    `/get_project_by_id/${params.project_id}`
+  );
+  console.log("getProjectById API");
   return response.data;
 };
 
@@ -175,7 +187,6 @@ export const updateProject = async (projectData: {
   status: string;
   deadline: string;
   progress: number;
-  professor: string;
   description: string;
   users: string[];
 }) => {

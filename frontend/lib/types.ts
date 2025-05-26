@@ -14,6 +14,7 @@ export type GetUsersParams = {
   sort_by?: string;
   page?: number;
   pageSize?: number;
+  keyword?: string;
 };
 
 export interface GetUsersResponse {

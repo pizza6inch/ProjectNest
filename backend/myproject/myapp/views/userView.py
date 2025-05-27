@@ -66,10 +66,10 @@ class UserListAPIView(viewsets.ModelViewSet):
     # 新增使用者
     @action(detail=False, methods=["post"])
     def create_user(self, request):
-        valid, payload = IsJwtTokenValid(request)
-        if not valid:
-            return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
-        
+        # valid, payload = IsJwtTokenValid(request)
+        # if not valid:
+        #     return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
+
         serializer = UserSerializer(data=request.data)
         print(request.data, serializer)
         if serializer.is_valid():
@@ -104,7 +104,7 @@ class UserListAPIView(viewsets.ModelViewSet):
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
         elif payload.get("role") != "admin" and payload.get("user_id") != pk:
             return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
-        
+
         try:
             user = User.objects.get(user_id=pk)
             user.delete()

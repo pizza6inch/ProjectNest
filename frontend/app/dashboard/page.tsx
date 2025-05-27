@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   Bell,
-  Calendar,
   CheckCircle2,
   Clock4,
   AlertCircle,
@@ -25,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -47,7 +47,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 import { useAuth } from "../../hooks/useAuth";
-import { getUserById, Project, updateUser, getMyProjects } from "@/lib/apiClient";
+import { getUserById, Project, updateUser, getMyProjects, createProject } from "@/lib/apiClient";
 import { useEffect, useState } from "react";
 import { User } from "@/lib/types";
 
@@ -59,6 +59,7 @@ export default function DashboardPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
 
   const [userData, setUserData] = useState<User>();
 
@@ -70,6 +71,59 @@ export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+
+  // add project form
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("");
+  const [deadline, setDeadline] = useState("");
+
+  const [members, setMembers] = useState<
+    {
+      id: string;
+      data: User | null;
+      loading: boolean;
+      error: string | null;
+    }[]
+  >([{ id: "", data: null, loading: false, error: null }]);
+
+  const addMember = () => {
+    setMembers([...members, { id: "", data: null, loading: false, error: null }]);
+  };
+
+  const removeMember = (index: number) => {
+    setMembers(members.filter((_, i) => i !== index));
+  };
+
+  const handleMemberChange = (index: number, value: string) => {
+    const newMembers = [...members];
+    newMembers[index].id = value;
+    newMembers[index].data = null;
+    newMembers[index].error = null;
+    setMembers(newMembers);
+  };
+
+  const confirmMemberId = async (index: number) => {
+    const memberId = members[index].id.trim();
+    if (!memberId) return;
+    const newMembers = [...members];
+    newMembers[index].loading = true;
+    newMembers[index].error = null;
+    newMembers[index].data = null;
+    setMembers(newMembers);
+
+    try {
+      const user = await getUserById(memberId);
+
+      // const data = await get_member_by_id(memberId);
+      newMembers[index].data = user;
+    } catch (error) {
+      newMembers[index].error = "User not found";
+    } finally {
+      newMembers[index].loading = false;
+      setMembers([...newMembers]);
+    }
+  };
 
   const getUserData = async () => {
     if (!user) return;
@@ -127,6 +181,44 @@ export default function DashboardPage() {
       getUserData();
     } catch (err) {
       toast({ title: "Edit Profile Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddProject = async () => {
+    console.log("data", {
+      title,
+      description,
+      status,
+      deadline,
+      members,
+    });
+    if (!title || !description || !status || members.length === 0) {
+      toast({
+        title: "Add Project Error",
+        description: "All fields are required",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await createProject({
+        title,
+        status,
+        deadline,
+        progress: 0,
+        description,
+        users: members.map((m) => m.data?.user_id || ""),
+      });
+
+      setIsAddProjectDialogOpen(false);
+      toast({ title: "Add Project Success" });
+      fetchMyProjects();
+    } catch (err) {
+      toast({ title: "Add Project Error", description: `${err}` });
     } finally {
       setIsLoading(false);
     }
@@ -480,7 +572,14 @@ export default function DashboardPage() {
                   <p className="text-sm text-muted-foreground text-center mt-1">
                     You don't have any projects assigned to you yet.
                   </p>
-                  <Button className="mt-4">Create New Project</Button>
+                  <Button
+                    className="mt-4"
+                    onClick={() => {
+                      setIsAddProjectDialogOpen(true);
+                    }}
+                  >
+                    Create New Project
+                  </Button>
                 </CardContent>
               </Card>
             )}
@@ -573,6 +672,122 @@ export default function DashboardPage() {
             ) : (
               <Button onClick={handleEditUser} type="submit">
                 Save Changes
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* add project dialog */}
+      <Dialog open={isAddProjectDialogOpen} onOpenChange={setIsAddProjectDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Project</DialogTitle>
+            <DialogDescription>Create a new project in the system.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project_title" className="text-right">
+                Project Title
+              </Label>
+              <Input id="project_title" onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Input id="description" onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <Select onValueChange={(value) => setStatus(value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="in_progress">In-Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deadline" className="text-right">
+                Deadline
+              </Label>
+              <div className="col-span-3">
+                <Calendar
+                  mode="single"
+                  selected={deadline ? new Date(deadline) : undefined}
+                  onSelect={(date) => setDeadline(date ? date.toISOString() : "")}
+                  disabled={isLoading}
+                />
+                {deadline && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Selected date: {new Date(deadline).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Members input with preview */}
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">Members</Label>
+              <div className="col-span-3 space-y-4">
+                {members.map((member, index) => (
+                  <div key={index} className="border rounded p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        placeholder="enter ID"
+                        value={member.id}
+                        onChange={(e) => handleMemberChange(index, e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button type="button" onClick={() => confirmMemberId(index)} disabled={member.loading}>
+                        {member.loading ? "Loading..." : "Confirm"}
+                      </Button>
+                      <Button type="button" variant="destructive" onClick={() => removeMember(index)}>
+                        Remove
+                      </Button>
+                    </div>
+                    {member.error && <p className="text-red-600 text-sm">{member.error}</p>}
+                    {member.data && member.data.name && (
+                      <div className=" p-2 rounded flex items-center gap-2 text-sm">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={member.data.image_url || "/placeholder-user.jpg"} alt={member.data.name} />
+                          <AvatarFallback>
+                            {member.data.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{member.data.name}</span>
+                          <span className="text-xs text-muted-foreground">{member.data.role}</span>
+                        </div>
+                        <span className="">{member.data.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addMember}>
+                  Add Member
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Creating...
+              </Button>
+            ) : (
+              <Button onClick={() => handleAddProject()} type="submit">
+                Create Project
               </Button>
             )}
           </DialogFooter>

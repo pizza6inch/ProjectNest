@@ -5,13 +5,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterPage() {
   const { register, loading } = useAuth();
@@ -24,9 +20,25 @@ export default function RegisterPage() {
   const [role, setRole] = useState("student");
   const [error, setError] = useState("");
 
+  const { toast } = useToast();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!studentId || !name || !email || !password || !role) {
+      toast({
+        title: "Registration Error",
+        description: "All fields are required",
+      });
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast({ title: "Registration Error", description: "Invalid email format" });
+      return;
+    }
+
     try {
       await register(studentId, name, email, password, role);
       // await register({na})
@@ -96,10 +108,7 @@ export default function RegisterPage() {
           <label htmlFor="role" className="block mb-1 font-medium">
             Role
           </label>
-          <Select
-            value={role}
-            onValueChange={(value: string) => setRole(value)}
-          >
+          <Select value={role} onValueChange={(value: string) => setRole(value)}>
             <SelectTrigger id="role" className="w-full">
               <SelectValue placeholder="Select a role" />
             </SelectTrigger>

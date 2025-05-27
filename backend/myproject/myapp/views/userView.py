@@ -70,8 +70,12 @@ class UserListAPIView(viewsets.ModelViewSet):
         # if not valid:
         #     return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
 
+
         serializer = UserSerializer(data=request.data)
-        print(request.data, serializer)
+        # print("POST data:", request.data)
+        # print("Is valid?", serializer.is_valid())
+        # print("Errors:", serializer.errors)
+        # print(request.data, serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

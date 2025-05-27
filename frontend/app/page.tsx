@@ -18,14 +18,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,20 +29,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-import {
-  getProjects,
-  getUsers,
-  GetProjectsResponse,
-  Project,
-} from "@/lib/apiClient";
+import { getProjects, getUsers, GetProjectsResponse, Project } from "@/lib/apiClient";
 
 import StatusBadge from "@/components/status-badge";
 
@@ -108,10 +90,7 @@ export default function HomePage() {
   >([{ id: "", data: null, loading: false, error: null }]);
 
   const addMember = () => {
-    setMembers([
-      ...members,
-      { id: "", data: null, loading: false, error: null },
-    ]);
+    setMembers([...members, { id: "", data: null, loading: false, error: null }]);
   };
 
   const removeMember = (index: number) => {
@@ -236,9 +215,7 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-            <p className="text-muted-foreground">
-              Browse and manage all academic projects
-            </p>
+            <p className="text-muted-foreground">Browse and manage all academic projects</p>
           </div>
           <Button onClick={() => handleOpenAddProjectDialog()}>
             <Plus className="mr-2 h-4 w-4" />
@@ -279,10 +256,7 @@ export default function HomePage() {
                 <div className="p-2">
                   <div className="mb-2">
                     <p className="text-xs font-medium mb-1">Status</p>
-                    <Select
-                      value={statusFilter}
-                      onValueChange={setStatusFilter}
-                    >
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
@@ -301,24 +275,14 @@ export default function HomePage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-1">
-                  {sortBy === "lastUpdated" ? (
-                    <SortDesc className="h-4 w-4" />
-                  ) : (
-                    <SortAsc className="h-4 w-4" />
-                  )}
+                  {sortBy === "lastUpdated" ? <SortDesc className="h-4 w-4" /> : <SortAsc className="h-4 w-4" />}
                   Sort
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setSortBy("lastUpdated")}>
-                  Last Updated
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("progress")}>
-                  Progress
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("deadline")}>
-                  Deadline
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("lastUpdated")}>Last Updated</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("progress")}>Progress</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("deadline")}>Deadline</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -326,35 +290,31 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Link
-              href={`/projects/${project.project_id}`}
-              key={project.project_id}
-              className="block"
-            >
+            <Link href={`/projects/${project.project_id}`} key={project.project_id} className="block">
               <Card className="h-full hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <StatusBadge status={project.status} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="-mr-2 -mt-2"
-                        >
+                        <Button variant="ghost" size="icon" className="-mr-2 -mt-2">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Actions</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                        <DropdownMenuItem>Track Project</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            window.location.href = `/projects/${project.project_id}`;
+                          }}
+                        >
+                          Project Details
+                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem>Track Project</DropdownMenuItem> */}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <CardTitle className="line-clamp-2">
-                    {project.title}
-                  </CardTitle>
+                  <CardTitle className="line-clamp-2">{project.title}</CardTitle>
                   <CardDescription className="line-clamp-3 text-sm text-muted-foreground">
                     {project.description || "No description provided."}
                   </CardDescription>
@@ -374,10 +334,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <CalendarIcon className="h-4 w-4" />
-                      <span>
-                        Deadline:{" "}
-                        {new Date(project.deadline).toLocaleDateString()}
-                      </span>
+                      <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -393,23 +350,17 @@ export default function HomePage() {
                             }
                             alt={project.professor_user.name}
                           /> */}
-                          <AvatarFallback>
-                            {project.professor_user.name}
-                          </AvatarFallback>
+                          <AvatarFallback>{project.professor_user.name}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {project.professor_user.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            Professor
-                          </span>
+                          <span className="text-sm font-medium">{project.professor_user.name}</span>
+                          <span className="text-xs text-muted-foreground">Professor</span>
                         </div>
                       </>
                     )}
                     <div className="ml-auto flex items-center text-xs text-muted-foreground">
                       <Clock className="mr-1 h-3 w-3" />
-                      Create At {project.create_at}
+                      Create At {new Date(project.create_at).toLocaleDateString()}
                     </div>
                   </div>
                 </CardFooter>
@@ -498,18 +449,13 @@ export default function HomePage() {
         {projects.length === 0 && (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium">No projects found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search or filters
-            </p>
+            <p className="text-muted-foreground">Try adjusting your search or filters</p>
           </div>
         )}
       </div>
 
       {/* add project dialog */}
-      <Dialog
-        open={isAddProjectDialogOpen}
-        onOpenChange={setIsAddProjectDialogOpen}
-      >
+      <Dialog open={isAddProjectDialogOpen} onOpenChange={setIsAddProjectDialogOpen}>
         <DialogTrigger asChild>
           {/* <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -519,30 +465,20 @@ export default function HomePage() {
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Project</DialogTitle>
-            <DialogDescription>
-              Create a new project in the system.
-            </DialogDescription>
+            <DialogDescription>Create a new project in the system.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="project_title" className="text-right">
                 Project Title
               </Label>
-              <Input
-                id="project_title"
-                onChange={(e) => setTitle(e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="project_title" onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">
                 Description
               </Label>
-              <Input
-                id="description"
-                onChange={(e) => setDescription(e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="description" onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">
@@ -567,9 +503,7 @@ export default function HomePage() {
                 <Calendar
                   mode="single"
                   selected={deadline ? new Date(deadline) : undefined}
-                  onSelect={(date) =>
-                    setDeadline(date ? date.toISOString() : "")
-                  }
+                  onSelect={(date) => setDeadline(date ? date.toISOString() : "")}
                   disabled={isLoading}
                 />
                 {deadline && (
@@ -590,38 +524,21 @@ export default function HomePage() {
                       <Input
                         placeholder="Enter member ID"
                         value={member.id}
-                        onChange={(e) =>
-                          handleMemberChange(index, e.target.value)
-                        }
+                        onChange={(e) => handleMemberChange(index, e.target.value)}
                         className="flex-1"
                       />
-                      <Button
-                        type="button"
-                        onClick={() => confirmMemberId(index)}
-                        disabled={member.loading}
-                      >
+                      <Button type="button" onClick={() => confirmMemberId(index)} disabled={member.loading}>
                         {member.loading ? "Loading..." : "Confirm"}
                       </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeMember(index)}
-                      >
+                      <Button type="button" variant="destructive" onClick={() => removeMember(index)}>
                         Remove
                       </Button>
                     </div>
-                    {member.error && (
-                      <p className="text-red-600 text-sm">{member.error}</p>
-                    )}
+                    {member.error && <p className="text-red-600 text-sm">{member.error}</p>}
                     {member.data && member.data.name && (
                       <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={
-                              member.data.image_url || "/placeholder-user.jpg"
-                            }
-                            alt={member.data.name}
-                          />
+                          <AvatarImage src={member.data.image_url || "/placeholder-user.jpg"} alt={member.data.name} />
                           <AvatarFallback>
                             {member.data.name
                               .split(" ")
@@ -630,12 +547,8 @@ export default function HomePage() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {member.data.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {member.data.role}
-                          </span>
+                          <span className="text-sm font-medium">{member.data.name}</span>
+                          <span className="text-xs text-muted-foreground">{member.data.role}</span>
                         </div>
                         <span className="">{member.data.email}</span>
                       </div>

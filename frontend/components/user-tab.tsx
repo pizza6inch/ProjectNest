@@ -2,23 +2,10 @@
 import React, { FormEvent } from "react";
 import { useState, useEffect } from "react";
 
-import {
-  Search,
-  MoreHorizontal,
-  Trash2,
-  PencilLine,
-  UserPlus,
-  Loader2,
-} from "lucide-react";
+import { Search, MoreHorizontal, Trash2, PencilLine, UserPlus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
@@ -30,21 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -139,7 +113,7 @@ export default function UserTab() {
   };
 
   const handleEditUser = async () => {
-    if (!userId || !name || !email || !password || !role) {
+    if (!userId || !name || !email || !password || !role || !selectedUser?.user_id) {
       toast({
         title: "Edit User Error",
         description: "All fields are required",
@@ -155,7 +129,7 @@ export default function UserTab() {
     try {
       setIsLoading(true);
 
-      await updateUser({ user_id: userId, name, email, password, role });
+      await updateUser(selectedUser?.user_id, { user_id: userId, name, email, password, role });
 
       toast({ title: "Edit User Success" });
       setIsEditUserDialogOpen(false);
@@ -222,9 +196,7 @@ export default function UserTab() {
         <Card>
           <CardHeader>
             <CardTitle>User Management</CardTitle>
-            <CardDescription>
-              View and manage all users in the system
-            </CardDescription>
+            <CardDescription>View and manage all users in the system</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -248,10 +220,7 @@ export default function UserTab() {
                 Search
               </Button>
               <div className="flex gap-2 w-full sm:w-auto">
-                <Select
-                  value={userRoleFilter}
-                  onValueChange={setUserRoleFilter}
-                >
+                <Select value={userRoleFilter} onValueChange={setUserRoleFilter}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by role" />
                   </SelectTrigger>
@@ -263,10 +232,7 @@ export default function UserTab() {
                   </SelectContent>
                 </Select>
                 {/* add user dialog */}
-                <Dialog
-                  open={isAddUserDialogOpen}
-                  onOpenChange={setIsAddUserDialogOpen}
-                >
+                <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <UserPlus className="mr-2 h-4 w-4" />
@@ -276,30 +242,20 @@ export default function UserTab() {
                   <DialogContent className="max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New User</DialogTitle>
-                      <DialogDescription>
-                        Create a new user account in the system.
-                      </DialogDescription>
+                      <DialogDescription>Create a new user account in the system.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="user_id" className="text-right">
                           Student_ID
                         </Label>
-                        <Input
-                          id="user_id"
-                          onChange={(e) => setUserId(e.target.value)}
-                          className="col-span-3"
-                        />
+                        <Input id="user_id" onChange={(e) => setUserId(e.target.value)} className="col-span-3" />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
                           Name
                         </Label>
-                        <Input
-                          id="name"
-                          className="col-span-3"
-                          onChange={(e) => setName(e.target.value)}
-                        />
+                        <Input id="name" className="col-span-3" onChange={(e) => setName(e.target.value)} />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="email" className="text-right">
@@ -316,11 +272,7 @@ export default function UserTab() {
                         <Label htmlFor="password" className="text-right">
                           Password
                         </Label>
-                        <Input
-                          id="password"
-                          className="col-span-3"
-                          onChange={(e) => setPassword(e.target.value)}
-                        />
+                        <Input id="password" className="col-span-3" onChange={(e) => setPassword(e.target.value)} />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="role" className="text-right">
@@ -383,9 +335,7 @@ export default function UserTab() {
                             </Avatar>
                             <div>
                               <div className="font-medium">{user.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {user.email}
-                              </div>
+                              <div className="text-xs text-muted-foreground">{user.email}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -449,16 +399,12 @@ export default function UserTab() {
       </TabsContent>
 
       {/* edit user dialog */}
-      <Dialog
-        open={isEditUserDialogOpen}
-        onOpenChange={setIsEditUserDialogOpen}
-      >
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Edit User {selectedUser?.name}(user_id:{selectedUser?.user_id}) in
-              the system.
+              Edit User {selectedUser?.name}(user_id:{selectedUser?.user_id}) in the system.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -466,23 +412,13 @@ export default function UserTab() {
               <Label htmlFor="user_id" className="text-right">
                 Student_ID
               </Label>
-              <Input
-                id="user_id"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="user_id" value={userId} onChange={(e) => setUserId(e.target.value)} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
-              <Input
-                id="name"
-                value={name}
-                className="col-span-3"
-                onChange={(e) => setName(e.target.value)}
-              />
+              <Input id="name" value={name} className="col-span-3" onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right">
@@ -500,11 +436,7 @@ export default function UserTab() {
               <Label htmlFor="password" className="text-right">
                 Password
               </Label>
-              <Input
-                id="password"
-                className="col-span-3"
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <Input id="password" className="col-span-3" onChange={(e) => setPassword(e.target.value)} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
@@ -538,10 +470,7 @@ export default function UserTab() {
       </Dialog>
 
       {/* delete user dialog */}
-      <Dialog
-        open={isDeleteUserDialogOpen}
-        onOpenChange={setIsDeleteUserDialogOpen}
-      >
+      <Dialog open={isDeleteUserDialogOpen} onOpenChange={setIsDeleteUserDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
@@ -551,10 +480,7 @@ export default function UserTab() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteUserDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsDeleteUserDialogOpen(false)}>
               Cancel
             </Button>
             {isLoading ? (

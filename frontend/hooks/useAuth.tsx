@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { User } from "@/lib/types";
@@ -29,13 +23,7 @@ type UserRole = "student" | "professor" | "admin" | null;
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    student_id: string,
-    name: string,
-    email: string,
-    password: string,
-    role: string
-  ) => Promise<void>;
+  register: (student_id: string, name: string, email: string, password: string, role: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -48,23 +36,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    // On mount, check if user info is stored in localStorage (simulate session)
-    const storedUser = localStorage.getItem("user");
+  function isValidJwtFormat(token: string) {
+    return token.split(".").length === 3;
+  }
 
-    if (storedUser) {
-      // Decode the token to get user info
-      const decodedToken: DecodedToken = jwtDecode(storedUser);
-      const userData: User = {
-        user_id: decodedToken.user_id,
-        name: decodedToken.name,
-        role: decodedToken.role,
-        image_url: decodedToken.img_url,
-      };
-      setUser(userData);
-    } else {
-      setUser(null);
-    }
+  useEffect(() => {
+    const token = localStorage.getItem("user");
+
+    const tryDecode = () => {
+      if (!token || !isValidJwtFormat(token)) {
+        localStorage.removeItem("user");
+        setUser(null);
+        return;
+      }
+
+      try {
+        const decodedToken = jwtDecode<DecodedToken>(token);
+
+        const userData: User = {
+          user_id: decodedToken.user_id,
+          name: decodedToken.name,
+          role: decodedToken.role,
+          image_url: decodedToken.img_url,
+        };
+        setUser(userData);
+      } catch {
+        localStorage.removeItem("user");
+        setUser(null);
+      }
+    };
+
+    tryDecode();
     setLoading(false);
   }, []);
 
@@ -75,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log("Login response:", response);
 
-      localStorage.setItem("user", JSON.stringify(response.token));
+      localStorage.setItem("user", response.token);
       const decodedToken: DecodedToken = jwtDecode(response.token);
       const userData: User = {
         user_id: decodedToken.user_id,
@@ -94,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Welcome back!",
         variant: "default",
       });
+      setLoading(false);
     } catch (error) {
       console.error("Login failed", error);
       toast({
@@ -107,13 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (
-    student_id: string,
-    name: string,
-    email: string,
-    password: string,
-    role: string
-  ) => {
+  const register = async (student_id: string, name: string, email: string, password: string, role: string) => {
     setLoading(true);
     try {
       // Assume student_id is the same as email for registration, or adjust as needed
@@ -140,11 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/login");
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, login, register, logout, loading }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

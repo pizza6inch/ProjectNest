@@ -1,81 +1,144 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import {
   Bell,
   Calendar,
   CheckCircle2,
   Clock4,
   AlertCircle,
-  User,
+  User as UserIcon,
   Bookmark,
   BookmarkPlus,
   MoreHorizontal,
   Settings,
   FileEdit,
   LogOut,
-} from "lucide-react"
+  Loader2,
+  Calendar as CalendarIcon,
+  Clock,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-import { useAuth } from "../../hooks/useAuth"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
+import { useAuth } from "../../hooks/useAuth";
+import { getUserById, Project, updateUser, getMyProjects } from "@/lib/apiClient";
+import { useEffect, useState } from "react";
+import { User } from "@/lib/types";
+
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth()
+  const { user, loading, logout } = useAuth();
+  const { toast } = useToast();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+
+  const [userData, setUserData] = useState<User>();
+
+  const [myProjects, setMyProjects] = useState<Project[]>([]);
+
+  // edit form
+  const [userId, setUserId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
+
+  const getUserData = async () => {
+    if (!user) return;
+    if (!user.user_id) return;
+    const userData = await getUserById(user.user_id);
+    setUserData(userData);
+  };
+
+  const fetchMyProjects = async () => {
+    if (!user) return;
+    if (!user.user_id) return;
+    const myProjects = await getMyProjects({ user_id: user.user_id });
+    setMyProjects(myProjects);
+  };
+
+  useEffect(() => {
+    getUserData();
+  }, [user]);
+
+  useEffect(() => {
+    if (userData) {
+      setUserId(userData?.user_id || "");
+      setName(userData?.name || "");
+      setEmail(userData?.email || "");
+      setRole(userData?.role || "");
+      setPassword("");
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    fetchMyProjects();
+  }, [user]);
+
+  const handleEditUser = async () => {
+    if (!userId || !name || !email || !password || !role || !userData?.user_id) {
+      toast({
+        title: "Edit Profile Error",
+        description: "All fields are required",
+      });
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast({ title: "Edit Profile Error", description: "Invalid email format" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await updateUser(userData?.user_id, { user_id: userId, name, email, password, role });
+
+      toast({ title: "Edit Profile Success" });
+      setIsEditUserDialogOpen(false);
+      getUserData();
+    } catch (err) {
+      toast({ title: "Edit Profile Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    return <div>Please log in to access the dashboard.</div>
+    return <div>Please log in to access the dashboard.</div>;
   }
-
-  // Mock additional user data for display
-  const userWithDetails = {
-    ...user,
-    department: "Computer Science",
-    joinDate: "2023-01-15",
-  }
-
-  // Mock projects data
-  const myProjects = [
-    {
-      id: "1",
-      title: "Machine Learning Algorithm Comparison",
-      status: "in-progress",
-      deadline: "2025-06-15",
-      progress: 65,
-      professor: "Dr. Williams",
-      lastActivity: "Sarah posted an update 2 days ago",
-    },
-    {
-      id: "4",
-      title: "Mobile App Development for Campus Services",
-      status: "in-progress",
-      deadline: "2025-06-30",
-      progress: 45,
-      professor: "Dr. Garcia",
-      lastActivity: "David uploaded new files 3 days ago",
-    },
-    {
-      id: "6",
-      title: "Cloud Infrastructure Deployment",
-      status: "pending",
-      deadline: "2025-08-01",
-      progress: 5,
-      professor: "Dr. Garcia",
-      lastActivity: "Project created 1 week ago",
-    },
-  ]
 
   const trackedProjects = [
     {
@@ -105,7 +168,7 @@ export default function DashboardPage() {
       professor: "Dr. Williams",
       lastActivity: "Olivia posted an update 1 day ago",
     },
-  ]
+  ];
 
   // Recent activity
   const recentActivity = [
@@ -149,7 +212,7 @@ export default function DashboardPage() {
       action: "uploaded new files",
       time: "3 days ago",
     },
-  ]
+  ];
 
   // Status badge component
   function StatusBadge({ status }: { status: string }) {
@@ -160,71 +223,106 @@ export default function DashboardPage() {
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Completed
           </Badge>
-        )
+        );
       case "in-progress":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
             <Clock4 className="mr-1 h-3 w-3" />
             In Progress
           </Badge>
-        )
+        );
       case "pending":
         return (
           <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
             <AlertCircle className="mr-1 h-3 w-3" />
             Pending
           </Badge>
-        )
+        );
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
   }
 
   // Project card component
   function ProjectCard({ project }: { project: any }) {
     return (
-      <Card className="h-full">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-start">
-            <StatusBadge status={project.status} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="-mr-2 -mt-2">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Actions</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href={`/projects/${project.id}`}>View Project</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>Untrack Project</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <Link href={`/projects/${project.id}`} className="hover:underline">
-            <CardTitle className="text-lg line-clamp-1">{project.title}</CardTitle>
-          </Link>
-          <CardDescription className="line-clamp-1">Professor: {project.professor}</CardDescription>
-        </CardHeader>
-        <CardContent className="pb-2">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Progress</span>
-                <span>{project.progress}%</span>
+      <Link href={`/projects/${project.project_id}`} key={project.project_id} className="block">
+        <Card className="h-full hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <StatusBadge status={project.status} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="-mr-2 -mt-2">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Actions</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      window.location.href = `/projects/${project.project_id}`;
+                    }}
+                  >
+                    Project Details
+                  </DropdownMenuItem>
+                  {/* <DropdownMenuItem>Track Project</DropdownMenuItem> */}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <CardTitle className="line-clamp-2">{project.title}</CardTitle>
+            <CardDescription className="line-clamp-3 text-sm text-muted-foreground">
+              {project.description || "No description provided."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Progress</span>
+                  <span>{project.progress}%</span>
+                </div>
+                <Progress value={project.progress} className="h-2" />
               </div>
-              <Progress value={project.progress} className="h-2" />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <UserIcon className="h-4 w-4" />
+                <span>Members: {project.user_count}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CalendarIcon className="h-4 w-4" />
+                <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
+          </CardContent>
+          <CardFooter className="pt-2">
+            <div className="flex items-center gap-2 w-full">
+              {project.professor_user && (
+                <>
+                  <Avatar className="h-8 w-8">
+                    {/* <AvatarImage
+                            src={
+                              project.professor_user.user_id ||
+                              "/placeholder.svg"
+                            }
+                            alt={project.professor_user.name}
+                          /> */}
+                    <AvatarFallback>{project.professor_user.name}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{project.professor_user.name}</span>
+                    <span className="text-xs text-muted-foreground">Professor</span>
+                  </div>
+                </>
+              )}
+              <div className="ml-auto flex items-center text-xs text-muted-foreground">
+                <Clock className="mr-1 h-3 w-3" />
+                Create At {new Date(project.create_at).toLocaleDateString()}
+              </div>
             </div>
-          </div>
-        </CardContent>
-        <CardFooter className="pt-2 text-xs text-muted-foreground border-t">{project.lastActivity}</CardFooter>
-      </Card>
-    )
+          </CardFooter>
+        </Card>
+      </Link>
+    );
   }
 
   return (
@@ -233,31 +331,27 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {userWithDetails.name}</p>
+            <p className="text-muted-foreground">Welcome back, {userData && userData.name}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Notifications</span>
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
-                  <User className="h-4 w-4" />
+                  <UserIcon className="h-4 w-4" />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setIsEditUserDialogOpen(true);
+                  }}
+                >
                   <FileEdit className="mr-2 h-4 w-4" />
                   <span>Edit Profile</span>
                 </DropdownMenuItem>
                 <Separator className="my-1" />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
@@ -267,45 +361,61 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle>Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center text-center">
-              <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={userWithDetails.avatar || "/placeholder.svg"} alt={userWithDetails.name} />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <h2 className="text-xl font-bold">{userWithDetails.name}</h2>
-              <p className="text-sm text-muted-foreground">{userWithDetails.email}</p>
-              <Badge className="mt-2">{userWithDetails.role}</Badge>
+          {userData && (
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle>Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center text-center">
+                <Avatar className="h-24 w-24 mb-4">
+                  <AvatarImage src={userData.image_url || "/placeholder.svg"} alt={userData.name} />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <h2 className="text-xl font-bold">{userData.name}</h2>
+                <p className="text-sm text-muted-foreground">{userData.email}</p>
+                <Badge className="mt-2">{userData.role}</Badge>
 
-              <div className="w-full mt-6 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Department:</span>
-                  <span className="font-medium">{userWithDetails.department}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Joined:</span>
-                  <span className="font-medium">{new Date(userWithDetails.joinDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Projects:</span>
-                  <span className="font-medium">{myProjects.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
+                <div className="w-full mt-6 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>StudentID:</span>
+                    <span className="font-medium">{userData.user_id}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Joined:</span>
+                    <span className="font-medium">
+                      {userData.create_at && new Date(userData.create_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Update At:</span>
+                    <span className="font-medium">
+                      {userData.update_at && new Date(userData.update_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Projects:</span>
+                    <span className="font-medium">{myProjects.length}</span>
+                  </div>
+                  {/* <div className="flex justify-between text-sm">
                   <span>Tracked:</span>
                   <span className="font-medium">{trackedProjects.length}</span>
+                </div> */}
                 </div>
-              </div>
 
-              <Button className="mt-6 w-full" variant="outline">
-                Edit Profile
-              </Button>
-            </CardContent>
-          </Card>
+                <Button
+                  className="mt-6 w-full"
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditUserDialogOpen(true);
+                  }}
+                >
+                  Edit Profile
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card className="md:col-span-2">
+          {/* <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
@@ -341,25 +451,25 @@ export default function DashboardPage() {
                 View All Activity
               </Button>
             </CardFooter>
-          </Card>
+          </Card> */}
         </div>
 
         <Tabs defaultValue="my-projects">
           <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="my-projects">My Projects</TabsTrigger>
-              <TabsTrigger value="tracked-projects">Tracked Projects</TabsTrigger>
+              {/* <TabsTrigger value="tracked-projects">Tracked Projects</TabsTrigger> */}
             </TabsList>
-            <Button size="sm">
+            {/* <Button size="sm">
               <BookmarkPlus className="mr-2 h-4 w-4" />
               Track New Project
-            </Button>
+            </Button> */}
           </div>
 
           <TabsContent value="my-projects" className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {myProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard key={project.project_id} project={project} />
               ))}
             </div>
             {myProjects.length === 0 && (
@@ -397,10 +507,77 @@ export default function DashboardPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* edit user dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Edit User {userData?.name}(user_id:{userData?.user_id}) in the system.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="user_id" className="text-right">
+                Student_ID
+              </Label>
+              <Input id="user_id" value={userId} onChange={(e) => setUserId(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input id="name" value={name} className="col-span-3" onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                value={email}
+                type="email"
+                className="col-span-3"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input id="password" className="col-span-3" onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">
+                Role
+              </Label>
+              <Select onValueChange={(value) => setRole(value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* <SelectItem value="admin">Admin</SelectItem> */}
+                  <SelectItem value="professor">Professor</SelectItem>
+                  <SelectItem value="student">Student</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Saving Changes...
+              </Button>
+            ) : (
+              <Button onClick={handleEditUser} type="submit">
+                Save Changes
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
+  );
 }
-
-
-
-

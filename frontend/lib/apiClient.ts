@@ -18,7 +18,7 @@ import type { InternalAxiosRequestConfig } from "axios";
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("user");
       if (token && config.headers) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
@@ -36,9 +36,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        Router.push("/login");
+        // localStorage.removeItem("user");
+        // Router.push("/login");
       }
     }
     return Promise.reject(error);
@@ -60,9 +59,7 @@ apiClient.interceptors.response.use(
 // export const getTotalUsers  = async ():Promise<{"total_user_count"}>
 
 // Get Users
-export const getUsers = async (
-  params: GetUsersParams = {}
-): Promise<GetUsersResponse> => {
+export const getUsers = async (params: GetUsersParams = {}): Promise<GetUsersResponse> => {
   const response = await apiClient.get<GetUsersResponse>("/get_users", {
     params,
   });
@@ -90,14 +87,17 @@ export const createUser = async (userData: {
 
 // Update a user
 
-export const updateUser = async (userData: {
-  user_id: string;
-  name: string;
-  email: string;
-  password: string;
-  role: string;
-}) => {
-  await apiClient.put(`/update_user/${userData.user_id}`, userData);
+export const updateUser = async (
+  user_id: string,
+  userData: {
+    user_id: string;
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+  }
+) => {
+  await apiClient.put(`/update_user/${user_id}`, userData);
   console.log("updateUser API");
 };
 
@@ -145,12 +145,8 @@ export const getProjects = async (params: {
 };
 
 // TODO: 等後端
-export const getProjectById = async (params: {
-  project_id: string;
-}): Promise<Project> => {
-  const response = await apiClient.get<Project>(
-    `/get_project_by_id/${params.project_id}`
-  );
+export const getProjectById = async (params: { project_id: string }): Promise<Project> => {
+  const response = await apiClient.get<Project>(`/get_project_by_id/${params.project_id}`);
   console.log("getProjectById API");
   return response.data;
 };
@@ -158,16 +154,19 @@ export const getProjectById = async (params: {
 export const getTotalProjects = async (params: {
   status?: "in_progress" | "done";
 }): Promise<{ total_projects: number }> => {
-  const response = await apiClient.get<{ total_projects: number }>(
-    "/totalProjects",
-    {
-      params,
-    }
-  );
+  const response = await apiClient.get<{ total_projects: number }>("/totalProjects", {
+    params,
+  });
   console.log("totalProjects API");
   return response.data;
 };
 export default apiClient;
+
+export const getMyProjects = async (params: { user_id: string }): Promise<Project[]> => {
+  const response = await apiClient.get<Project[]>(`/my_projects/${params.user_id}`);
+  console.log("getMyProjects API");
+  return response.data;
+};
 
 export const createProject = async (projectData: {
   title: string;

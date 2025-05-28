@@ -248,16 +248,6 @@ export default function ProjectTab() {
       setDescription(selectedProject?.description);
       setStatus(selectedProject?.status);
       setDeadline(selectedProject?.deadline || "");
-
-      // TODO:fetch member只能用detail API 所以等後端
-      // setMembers(
-      //   selectedProject?.users.map((user) => ({
-      //     id: user.user_id || "",
-      //     data: user,
-      //     loading: false,
-      //     error: null,
-      //   })) || []
-      // );
     }
   }, [selectedProject]);
 
@@ -551,20 +541,25 @@ export default function ProjectTab() {
               <Label htmlFor="project_id" className="text-right">
                 ProjectTitle
               </Label>
-              <Input id="project_id" onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
+              <Input id="project_id" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Description
               </Label>
-              <Input id="name" className="col-span-3" onChange={(e) => setDescription(e.target.value)} />
+              <Input
+                id="name"
+                value={description}
+                className="col-span-3"
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
                 Status
               </Label>
-              <Select onValueChange={(value) => setStatus(value)}>
+              <Select value={status} onValueChange={(value) => setStatus(value)}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>

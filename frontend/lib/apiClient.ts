@@ -153,17 +153,8 @@ export interface Comment {
 
 export interface ProjectDetail {
   project: Project;
-  students: {
-    user_id: string;
-    name: string;
-    email: string;
-    image_url: string;
-  }[];
-  professors: {
-    user_id: string;
-    name: string;
-    email: string;
-  }[];
+  students: User[];
+  professors: User[];
   progresses: Progress[];
 }
 
@@ -188,7 +179,6 @@ export const getProjects = async (params: {
   return response.data;
 };
 
-// TODO: 等後端
 export const getProjectDetail = async (params: { project_id: string }): Promise<ProjectDetail> => {
   const response = await apiClient.get<ProjectDetail>(`/project_detail/${params.project_id}`);
   console.log("project_detail API");
@@ -241,6 +231,8 @@ export const deleteProject = async (project_id: string) => {
   await apiClient.delete(`/delete_project/${project_id}`);
   console.log("deleteProject API");
 };
+
+// export const createComment = async (project_id:string,user)
 
 export const getToken = async ({
   user_id,

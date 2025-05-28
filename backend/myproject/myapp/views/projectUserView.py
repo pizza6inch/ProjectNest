@@ -57,7 +57,7 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
             if pu.user.role == "student":
                 students.append({"user_id": pu.user.user_id, "name": pu.user.name,"email":pu.user.email,"image_url":pu.user.image_url})
             elif pu.user.role == "professor":
-                professors.append({"user_id": pu.user.user_id, "name": pu.user.name,"email":pu.user.email})
+                professors.append({"user_id": pu.user.user_id, "name": pu.user.name,"email":pu.user.email,"image_url":pu.user.image_url})
 
         # Project Progresses with comments
         progresses = ProjectProgress.objects.filter(project=project).order_by("create_at")

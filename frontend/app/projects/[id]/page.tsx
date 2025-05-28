@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Calendar,
+  Calendar as CalendarIcon,
   CheckCircle2,
   Clock4,
   AlertCircle,
@@ -32,19 +32,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogDescription,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
+import { Calendar } from "@/components/ui/calendar";
 import StatusBadge from "@/components/status-badge";
 import { getProjectDetail, getUserById, Project, ProjectDetail, updateProject } from "@/lib/apiClient";
+import { User } from "@/lib/types";
 import { useParams } from "next/navigation";
 
 import { formatTime } from "@/lib/utils";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { error } from "console";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -63,6 +72,61 @@ export default function ProjectDetailPage() {
   const [addMemberId, setAddMemberId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // edit project form
+  const [isEditProjectDialogOpen, setIsEditProjectDialogOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [progress, setProgress] = useState(0);
+
+  const [members, setMembers] = useState<
+    {
+      id: string;
+      data: User | null;
+      loading: boolean;
+      error: string | null;
+    }[]
+  >([{ id: "", data: null, loading: false, error: null }]);
+
+  const addMember = () => {
+    setMembers([...members, { id: "", data: null, loading: false, error: null }]);
+  };
+
+  const removeMember = (index: number) => {
+    setMembers(members.filter((_, i) => i !== index));
+  };
+
+  const handleMemberChange = (index: number, value: string) => {
+    const newMembers = [...members];
+    newMembers[index].id = value;
+    newMembers[index].data = null;
+    newMembers[index].error = null;
+    setMembers(newMembers);
+  };
+
+  const confirmMemberId = async (index: number) => {
+    const memberId = members[index].id.trim();
+    if (!memberId) return;
+    const newMembers = [...members];
+    newMembers[index].loading = true;
+    newMembers[index].error = null;
+    newMembers[index].data = null;
+    setMembers(newMembers);
+
+    try {
+      const user = await getUserById(memberId);
+
+      // const data = await get_member_by_id(memberId);
+      newMembers[index].data = user;
+    } catch (error) {
+      newMembers[index].error = "User not found";
+    } finally {
+      newMembers[index].loading = false;
+      setMembers([...newMembers]);
+    }
+  };
+
   const fetchProjectDetail = async () => {
     if (!id || typeof id !== "string") return;
     const response = await getProjectDetail({ project_id: id });
@@ -73,6 +137,31 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     fetchProjectDetail();
   }, []);
+
+  useEffect(() => {
+    if (projectDetail) {
+      setTitle(projectDetail.project?.title);
+      setDescription(projectDetail.project?.description);
+      setStatus(projectDetail.project?.status);
+      setDeadline(projectDetail.project?.deadline || "");
+      const members = [
+        ...projectDetail.students.map((student) => ({
+          id: student.user_id || "",
+          data: student,
+          error: null,
+          loading: false,
+        })),
+        ...projectDetail.professors.map((professor) => ({
+          id: professor.user_id || "",
+          data: professor,
+          error: null,
+          loading: false,
+        })),
+      ];
+
+      setMembers(members);
+    }
+  }, [projectDetail]);
 
   const handlePostComment = (updateId: string) => {
     if (newComment.trim()) {
@@ -97,8 +186,8 @@ export default function ProjectDetailPage() {
     if (!projectDetail?.project.title) return;
 
     const originalMembers = [
-      ...projectDetail?.students.map((student) => student.user_id),
-      ...projectDetail?.professors.map((professor) => professor.user_id),
+      ...projectDetail?.students.map((student) => student.user_id || ""),
+      ...projectDetail?.professors.map((professor) => professor.user_id || ""),
     ];
 
     await updateProject({
@@ -135,8 +224,8 @@ export default function ProjectDetailPage() {
     if (!projectDetail?.project.title) return;
 
     const originalMembers = [
-      ...projectDetail?.students.map((student) => student.user_id),
-      ...projectDetail?.professors.map((professor) => professor.user_id),
+      ...projectDetail?.students.map((student) => student.user_id || ""),
+      ...projectDetail?.professors.map((professor) => professor.user_id || ""),
     ];
     console.log(addMemberId);
 
@@ -167,6 +256,39 @@ export default function ProjectDetailPage() {
       });
       setIsLoading(false);
       return;
+    }
+  };
+
+  const handleEditProject = async () => {
+    if (!title || !description || !status || members.length === 0) {
+      toast({
+        title: "Edit Project Error",
+        description: "All fields are required",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await updateProject({
+        project_id: id,
+        title,
+        description,
+        status,
+        deadline,
+        progress,
+        users: members.map((m) => m.data?.user_id || ""),
+      });
+
+      toast({ title: "Edit Project Success" });
+      setIsEditProjectDialogOpen(false);
+
+      fetchProjectDetail();
+    } catch (err) {
+      toast({ title: "Edit Project Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -226,7 +348,7 @@ export default function ProjectDetailPage() {
                 <div>
                   <h3 className="text-sm font-medium mb-1">Deadline</h3>
                   <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                     {projectDetail?.project.deadline && <span>{formatTime(projectDetail?.project.deadline)}</span>}
                   </div>
                 </div>
@@ -280,7 +402,7 @@ export default function ProjectDetailPage() {
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={() => setIsEditProjectDialogOpen(true)}>
                   Edit Project Detail
                 </Button>
               </CardContent>
@@ -503,6 +625,130 @@ export default function ProjectDetailPage() {
             ) : (
               <Button onClick={() => handleAddMember()} type="submit">
                 Add Member
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* edit project dialog */}
+      <Dialog open={isEditProjectDialogOpen} onOpenChange={setIsEditProjectDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+            <DialogDescription>
+              Edit Project {projectDetail?.project?.title}(project_id:
+              {projectDetail?.project.project_id}) in the system.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project_id" className="text-right">
+                ProjectTitle
+              </Label>
+              <Input id="project_id" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Description
+              </Label>
+              <Input
+                id="name"
+                value={description}
+                className="col-span-3"
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">
+                Status
+              </Label>
+              <Select value={status} onValueChange={(value) => setStatus(value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* <SelectItem value="admin">Admin</SelectItem> */}
+                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="in_progress">In-Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deadline" className="text-right">
+                Deadline
+              </Label>
+              <div className="col-span-3">
+                <Calendar
+                  mode="single"
+                  selected={deadline ? new Date(deadline) : undefined}
+                  onSelect={(date) => setDeadline(date ? date.toISOString() : "")}
+                  disabled={isLoading}
+                />
+                {deadline && (
+                  <p className="mt-2 text-sm text-muted-foreground">Selected date: {formatTime(deadline)}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Members input with preview */}
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">Members</Label>
+              <div className="col-span-3 space-y-4">
+                {members.map((member, index) => (
+                  <div key={index} className="border rounded p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Input
+                        placeholder="user ID"
+                        value={member.id}
+                        onChange={(e) => handleMemberChange(index, e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button type="button" onClick={() => confirmMemberId(index)} disabled={member.loading}>
+                        {member.loading ? "Loading..." : "Confirm"}
+                      </Button>
+                      <Button type="button" variant="destructive" onClick={() => removeMember(index)}>
+                        Remove
+                      </Button>
+                    </div>
+                    {member.error && <p className="text-red-600 text-sm">{member.error}</p>}
+                    {member.data && member.data.name && (
+                      <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={member.data.image_url || "/placeholder-user.jpg"} alt={member.data.name} />
+                          <AvatarFallback>
+                            {member.data.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{member.data.name}</span>
+                          <span className="text-xs text-muted-foreground">{member.data.role}</span>
+                        </div>
+                        <span className="">{member.data.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addMember}>
+                  Add Member
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Saving Changes...
+              </Button>
+            ) : (
+              <Button onClick={handleEditProject} type="submit">
+                Save Changes
               </Button>
             )}
           </DialogFooter>

@@ -56,6 +56,7 @@ import { User as UserType } from "@/lib/types";
 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { formatTime } from "@/lib/utils";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -334,7 +335,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <CalendarIcon className="h-4 w-4" />
-                      <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
+                      <span>Deadline: {formatTime(project.deadline)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -343,13 +344,10 @@ export default function HomePage() {
                     {project.professor_user && (
                       <>
                         <Avatar className="h-8 w-8">
-                          {/* <AvatarImage
-                            src={
-                              project.professor_user.user_id ||
-                              "/placeholder.svg"
-                            }
+                          <AvatarImage
+                            src={project.professor_user.image_url || "/placeholder.svg"}
                             alt={project.professor_user.name}
-                          /> */}
+                          />
                           <AvatarFallback>{project.professor_user.name}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
@@ -360,7 +358,7 @@ export default function HomePage() {
                     )}
                     <div className="ml-auto flex items-center text-xs text-muted-foreground">
                       <Clock className="mr-1 h-3 w-3" />
-                      Create At {new Date(project.create_at).toLocaleDateString()}
+                      Create At {formatTime(project.create_at)}
                     </div>
                   </div>
                 </CardFooter>
@@ -369,77 +367,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* {filteredProjects.length > 0 && (
-          <div className="flex justify-center mt-6">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  // Show first page, last page, current page, and pages around current
-                  let pageNum = i + 1;
-
-                  if (totalPages > 5) {
-                    if (currentPage <= 3) {
-                      // Near start: show first 5 pages
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      // Near end: show last 5 pages
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      // Middle: show current page and 2 pages on each side
-                      pageNum = currentPage - 2 + i;
-                    }
-                  }
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      size="sm"
-                      className="w-9"
-                      onClick={() => setCurrentPage(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-
-                {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <>
-                    {currentPage < totalPages - 3 && (
-                      <span className="mx-1">...</span>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-9"
-                      onClick={() => setCurrentPage(totalPages)}
-                    >
-                      {totalPages}
-                    </Button>
-                  </>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )} */}
         <Pagination
           total={totalProjectsCount}
           page={currentPage}
@@ -507,9 +434,7 @@ export default function HomePage() {
                   disabled={isLoading}
                 />
                 {deadline && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Selected date: {new Date(deadline).toLocaleDateString()}
-                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">Selected date: {formatTime(deadline)}</p>
                 )}
               </div>
             </div>

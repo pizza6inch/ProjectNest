@@ -2,18 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import {
-  Home,
-  FolderKanban,
-  User,
-  LogOut,
-  Search,
-  Settings,
-  Users,
-  Shield,
-  Sun,
-  Moon,
-} from "lucide-react";
+import { Home, FolderKanban, User, LogOut, Search, Settings, Users, Shield, Sun, Moon } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "next-themes";
 
@@ -76,22 +65,16 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {user &&
-                (user.role === "student" ||
-                  user.role === "professor" ||
-                  user.role === "admin") && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive("/dashboard")}
-                    >
-                      <Link href="/dashboard">
-                        <User className="h-4 w-4" />
-                        <span>Dashboard</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )}
+              {user && (user.role === "student" || user.role === "professor" || user.role === "admin") && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+                    <Link href="/dashboard">
+                      <User className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {!user && (
                 <>
                   <SidebarMenuItem>
@@ -123,10 +106,7 @@ export function AppSidebar() {
               <SidebarGroupLabel>
                 <span className="flex items-center gap-2">
                   Admin
-                  <Badge
-                    variant="outline"
-                    className="text-xs bg-red-50 text-red-700 border-red-200"
-                  >
+                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
                     Admin Only
                   </Badge>
                 </span>
@@ -152,10 +132,7 @@ export function AppSidebar() {
           {user && user.name && (
             <>
               <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={user.image_url || "/placeholder-user.jpg"}
-                  alt={user.name}
-                />
+                <AvatarImage src={user.image_url || "/placeholder-user.jpg"} alt={user.name} />
                 <AvatarFallback>
                   {user.name
                     .split(" ")
@@ -165,16 +142,9 @@ export function AppSidebar() {
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{user.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {user.role}
-                </span>
+                <span className="text-xs text-muted-foreground">{user.role}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-auto"
-                onClick={logout}
-              >
+              <Button variant="ghost" size="icon" className="ml-auto" onClick={logout}>
                 <LogOut className="h-4 w-4" />
                 <span className="sr-only">Log out</span>
               </Button>
@@ -186,11 +156,7 @@ export function AppSidebar() {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
         </div>
       </SidebarFooter>

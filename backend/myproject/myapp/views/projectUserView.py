@@ -73,7 +73,7 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
                     "author": {
                         "user_id": comment.user.user_id if comment.user else None,
                         "name": comment.user.name if comment.user else None,
-                        "image_url":progress.user.name,
+                        "image_url":comment.user.image_url if comment.user else None,
                     },
                     "content": comment.content,
                     "create_at": comment.create_at,
@@ -90,8 +90,9 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
                 "author":{
                     "user_id":progress.user.user_id,
                     "name":progress.user.name,
-                    "image_url":progress.user.name,
+                    "image_url":progress.user.image_url,
                 },
+                "title":progress.title
             })
 
         return Response({

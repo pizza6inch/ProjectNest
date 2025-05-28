@@ -116,6 +116,7 @@ export interface Project {
   professor_user: {
     name: string;
     user_id: string;
+    image_url: string;
   };
   update_at: string;
   description: string;
@@ -128,19 +129,26 @@ export interface Progress {
   status: string;
   estimated_time: string;
   progress_note: string;
-  created_at: string;
-  updated_at: string;
+  create_at: string;
+  update_at: string;
   comments: Comment[];
+  title: string;
+  author: {
+    user_id: string;
+    name: string;
+    image_url: string;
+  };
 }
 
 export interface Comment {
   comment_id: string;
-  user: {
+  author: {
     user_id: string;
     name: string;
+    image_url: string;
   };
   content: string;
-  created_at: string;
+  create_at: string;
 }
 
 export interface ProjectDetail {

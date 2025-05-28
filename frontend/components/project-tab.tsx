@@ -2,23 +2,10 @@
 import React, { FormEvent } from "react";
 import { useState, useEffect } from "react";
 
-import {
-  Search,
-  MoreHorizontal,
-  Trash2,
-  PencilLine,
-  Plus,
-  Loader2,
-} from "lucide-react";
+import { Search, MoreHorizontal, Trash2, PencilLine, Plus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -31,21 +18,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -77,14 +51,14 @@ import {
 import { User } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useDashboardStats } from "@/hooks/dashBoardStatsContext";
+import { formatTime } from "@/lib/utils";
 
 export default function ProjectTab() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectSearchQuery, setProjectSearchQuery] = useState("");
   const [projectStatusFilter, setProjectStatusFilter] = useState("all");
   const [currentProjectPage, setCurrentProjectPage] = useState(1);
-  const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] =
-    useState(false);
+  const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] = useState(false);
   const [isAddProjectDialogOpen, setIsAddProjectDialogOpen] = useState(false);
   const [isEditProjectDialogOpen, setIsEditProjectDialogOpen] = useState(false);
 
@@ -106,10 +80,7 @@ export default function ProjectTab() {
   >([{ id: "", data: null, loading: false, error: null }]);
 
   const addMember = () => {
-    setMembers([
-      ...members,
-      { id: "", data: null, loading: false, error: null },
-    ]);
+    setMembers([...members, { id: "", data: null, loading: false, error: null }]);
   };
 
   const removeMember = (index: number) => {
@@ -305,9 +276,7 @@ export default function ProjectTab() {
         <Card>
           <CardHeader>
             <CardTitle>Project Management</CardTitle>
-            <CardDescription>
-              View and manage all projects in the system
-            </CardDescription>
+            <CardDescription>View and manage all projects in the system</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -331,10 +300,7 @@ export default function ProjectTab() {
                 Search
               </Button>
               <div className="flex gap-2 w-full sm:w-auto">
-                <Select
-                  value={projectStatusFilter}
-                  onValueChange={setProjectStatusFilter}
-                >
+                <Select value={projectStatusFilter} onValueChange={setProjectStatusFilter}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
@@ -347,10 +313,7 @@ export default function ProjectTab() {
                   </SelectContent>
                 </Select>
                 {/* add project dialog */}
-                <Dialog
-                  open={isAddProjectDialogOpen}
-                  onOpenChange={setIsAddProjectDialogOpen}
-                >
+                <Dialog open={isAddProjectDialogOpen} onOpenChange={setIsAddProjectDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="mr-2 h-4 w-4" />
@@ -360,20 +323,14 @@ export default function ProjectTab() {
                   <DialogContent className="max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Project</DialogTitle>
-                      <DialogDescription>
-                        Create a new project in the system.
-                      </DialogDescription>
+                      <DialogDescription>Create a new project in the system.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="project_title" className="text-right">
                           Project Title
                         </Label>
-                        <Input
-                          id="project_title"
-                          onChange={(e) => setTitle(e.target.value)}
-                          className="col-span-3"
-                        />
+                        <Input id="project_title" onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">
@@ -395,9 +352,7 @@ export default function ProjectTab() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="done">Done</SelectItem>
-                            <SelectItem value="in_progress">
-                              In-Progress
-                            </SelectItem>
+                            <SelectItem value="in_progress">In-Progress</SelectItem>
                             <SelectItem value="pending">Pending</SelectItem>
                           </SelectContent>
                         </Select>
@@ -410,16 +365,11 @@ export default function ProjectTab() {
                           <Calendar
                             mode="single"
                             selected={deadline ? new Date(deadline) : undefined}
-                            onSelect={(date) =>
-                              setDeadline(date ? date.toISOString() : "")
-                            }
+                            onSelect={(date) => setDeadline(date ? date.toISOString() : "")}
                             disabled={isLoading}
                           />
                           {deadline && (
-                            <p className="mt-2 text-sm text-muted-foreground">
-                              Selected date:{" "}
-                              {new Date(deadline).toLocaleDateString()}
-                            </p>
+                            <p className="mt-2 text-sm text-muted-foreground">Selected date: {formatTime(deadline)}</p>
                           )}
                         </div>
                       </div>
@@ -434,39 +384,22 @@ export default function ProjectTab() {
                                 <Input
                                   placeholder="Enter member ID"
                                   value={member.id}
-                                  onChange={(e) =>
-                                    handleMemberChange(index, e.target.value)
-                                  }
+                                  onChange={(e) => handleMemberChange(index, e.target.value)}
                                   className="flex-1"
                                 />
-                                <Button
-                                  type="button"
-                                  onClick={() => confirmMemberId(index)}
-                                  disabled={member.loading}
-                                >
+                                <Button type="button" onClick={() => confirmMemberId(index)} disabled={member.loading}>
                                   {member.loading ? "Loading..." : "Confirm"}
                                 </Button>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  onClick={() => removeMember(index)}
-                                >
+                                <Button type="button" variant="destructive" onClick={() => removeMember(index)}>
                                   Remove
                                 </Button>
                               </div>
-                              {member.error && (
-                                <p className="text-red-600 text-sm">
-                                  {member.error}
-                                </p>
-                              )}
+                              {member.error && <p className="text-red-600 text-sm">{member.error}</p>}
                               {member.data && member.data.name && (
                                 <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
                                   <Avatar className="h-8 w-8">
                                     <AvatarImage
-                                      src={
-                                        member.data.image_url ||
-                                        "/placeholder-user.jpg"
-                                      }
+                                      src={member.data.image_url || "/placeholder-user.jpg"}
                                       alt={member.data.name}
                                     />
                                     <AvatarFallback>
@@ -477,12 +410,8 @@ export default function ProjectTab() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex flex-col">
-                                    <span className="text-sm font-medium">
-                                      {member.data.name}
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {member.data.role}
-                                    </span>
+                                    <span className="text-sm font-medium">{member.data.name}</span>
+                                    <span className="text-xs text-muted-foreground">{member.data.role}</span>
                                   </div>
                                   <span className="">{member.data.email}</span>
                                 </div>
@@ -502,10 +431,7 @@ export default function ProjectTab() {
                           Creating...
                         </Button>
                       ) : (
-                        <Button
-                          onClick={() => handleAddProject()}
-                          type="submit"
-                        >
+                        <Button onClick={() => handleAddProject()} type="submit">
                           Create Project
                         </Button>
                       )}
@@ -535,29 +461,18 @@ export default function ProjectTab() {
                         <TableCell>
                           <Link href={`/projects/${project.project_id}`}>
                             <div className="font-medium">{project.title}</div>
-                            <div className="text-xs text-muted-foreground">
-                              ID: {project.project_id}
-                            </div>
+                            <div className="text-xs text-muted-foreground">ID: {project.project_id}</div>
                           </Link>
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={project.status} />
                         </TableCell>
-                        <TableCell>
-                          {project.professor_user
-                            ? project.professor_user.name
-                            : "N/A"}
-                        </TableCell>
+                        <TableCell>{project.professor_user ? project.professor_user.name : "N/A"}</TableCell>
                         <TableCell>{project.user_count}</TableCell>
-                        <TableCell>
-                          {new Date(project.deadline).toLocaleDateString()}
-                        </TableCell>
+                        <TableCell>{formatTime(project.deadline)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Progress
-                              value={project.progress}
-                              className="h-2 w-[60px]"
-                            />
+                            <Progress value={project.progress} className="h-2 w-[60px]" />
                             <span className="text-xs">{project.progress}%</span>
                           </div>
                         </TableCell>
@@ -622,10 +537,7 @@ export default function ProjectTab() {
       </TabsContent>
 
       {/* edit project dialog */}
-      <Dialog
-        open={isEditProjectDialogOpen}
-        onOpenChange={setIsEditProjectDialogOpen}
-      >
+      <Dialog open={isEditProjectDialogOpen} onOpenChange={setIsEditProjectDialogOpen}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
@@ -639,21 +551,13 @@ export default function ProjectTab() {
               <Label htmlFor="project_id" className="text-right">
                 ProjectTitle
               </Label>
-              <Input
-                id="project_id"
-                onChange={(e) => setTitle(e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="project_id" onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Description
               </Label>
-              <Input
-                id="name"
-                className="col-span-3"
-                onChange={(e) => setDescription(e.target.value)}
-              />
+              <Input id="name" className="col-span-3" onChange={(e) => setDescription(e.target.value)} />
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
@@ -680,15 +584,11 @@ export default function ProjectTab() {
                 <Calendar
                   mode="single"
                   selected={deadline ? new Date(deadline) : undefined}
-                  onSelect={(date) =>
-                    setDeadline(date ? date.toISOString() : "")
-                  }
+                  onSelect={(date) => setDeadline(date ? date.toISOString() : "")}
                   disabled={isLoading}
                 />
                 {deadline && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Selected date: {new Date(deadline).toLocaleDateString()}
-                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">Selected date: {formatTime(deadline)}</p>
                 )}
               </div>
             </div>
@@ -703,38 +603,21 @@ export default function ProjectTab() {
                       <Input
                         placeholder="Enter member ID"
                         value={member.id}
-                        onChange={(e) =>
-                          handleMemberChange(index, e.target.value)
-                        }
+                        onChange={(e) => handleMemberChange(index, e.target.value)}
                         className="flex-1"
                       />
-                      <Button
-                        type="button"
-                        onClick={() => confirmMemberId(index)}
-                        disabled={member.loading}
-                      >
+                      <Button type="button" onClick={() => confirmMemberId(index)} disabled={member.loading}>
                         {member.loading ? "Loading..." : "Confirm"}
                       </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeMember(index)}
-                      >
+                      <Button type="button" variant="destructive" onClick={() => removeMember(index)}>
                         Remove
                       </Button>
                     </div>
-                    {member.error && (
-                      <p className="text-red-600 text-sm">{member.error}</p>
-                    )}
+                    {member.error && <p className="text-red-600 text-sm">{member.error}</p>}
                     {member.data && member.data.name && (
                       <div className="bg-gray-50 p-2 rounded flex items-center gap-2 text-sm">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={
-                              member.data.image_url || "/placeholder-user.jpg"
-                            }
-                            alt={member.data.name}
-                          />
+                          <AvatarImage src={member.data.image_url || "/placeholder-user.jpg"} alt={member.data.name} />
                           <AvatarFallback>
                             {member.data.name
                               .split(" ")
@@ -743,12 +626,8 @@ export default function ProjectTab() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {member.data.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {member.data.role}
-                          </span>
+                          <span className="text-sm font-medium">{member.data.name}</span>
+                          <span className="text-xs text-muted-foreground">{member.data.role}</span>
                         </div>
                         <span className="">{member.data.email}</span>
                       </div>
@@ -777,10 +656,7 @@ export default function ProjectTab() {
       </Dialog>
 
       {/* delete project dialog */}
-      <Dialog
-        open={isDeleteProjectDialogOpen}
-        onOpenChange={setIsDeleteProjectDialogOpen}
-      >
+      <Dialog open={isDeleteProjectDialogOpen} onOpenChange={setIsDeleteProjectDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Project</DialogTitle>
@@ -790,10 +666,7 @@ export default function ProjectTab() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteProjectDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setIsDeleteProjectDialogOpen(false)}>
               Cancel
             </Button>
             {isLoading ? (

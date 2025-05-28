@@ -15,10 +15,8 @@ interface DecodedToken {
   role: string;
   name: string;
   email: string;
-  img_url: string;
+  image_url: string;
 }
-
-type UserRole = "student" | "professor" | "admin" | null;
 
 interface AuthContextType {
   user: User | null;
@@ -52,12 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const decodedToken = jwtDecode<DecodedToken>(token);
+        console.log("decodeToken", decodedToken);
 
         const userData: User = {
           user_id: decodedToken.user_id,
           name: decodedToken.name,
           role: decodedToken.role,
-          image_url: decodedToken.img_url,
+          image_url: decodedToken.image_url,
         };
         setUser(userData);
       } catch {
@@ -83,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user_id: decodedToken.user_id,
         name: decodedToken.name,
         role: decodedToken.role,
-        image_url: decodedToken.img_url,
+        image_url: decodedToken.image_url,
       };
       setUser(userData);
       if (userData.role === "admin") router.push("/admin");

@@ -52,6 +52,7 @@ import { useEffect, useState } from "react";
 import { User } from "@/lib/types";
 
 import { useToast } from "@/hooks/use-toast";
+import { formatTime } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -336,7 +337,7 @@ export default function DashboardPage() {
   }
 
   // Project card component
-  function ProjectCard({ project }: { project: any }) {
+  function ProjectCard({ project }: { project: Project }) {
     return (
       <Link href={`/projects/${project.project_id}`} key={project.project_id} className="block">
         <Card className="h-full hover:shadow-md transition-shadow">
@@ -382,7 +383,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CalendarIcon className="h-4 w-4" />
-                <span>Deadline: {new Date(project.deadline).toLocaleDateString()}</span>
+                <span>Deadline: {formatTime(project.deadline)}</span>
               </div>
             </div>
           </CardContent>
@@ -391,13 +392,10 @@ export default function DashboardPage() {
               {project.professor_user && (
                 <>
                   <Avatar className="h-8 w-8">
-                    {/* <AvatarImage
-                            src={
-                              project.professor_user.user_id ||
-                              "/placeholder.svg"
-                            }
-                            alt={project.professor_user.name}
-                          /> */}
+                    <AvatarImage
+                      src={project.professor_user.image_url || "/placeholder.svg"}
+                      alt={project.professor_user.name}
+                    />
                     <AvatarFallback>{project.professor_user.name}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
@@ -408,7 +406,7 @@ export default function DashboardPage() {
               )}
               <div className="ml-auto flex items-center text-xs text-muted-foreground">
                 <Clock className="mr-1 h-3 w-3" />
-                Create At {new Date(project.create_at).toLocaleDateString()}
+                Create At {formatTime(project.create_at)}
               </div>
             </div>
           </CardFooter>
@@ -474,15 +472,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Joined:</span>
-                    <span className="font-medium">
-                      {userData.create_at && new Date(userData.create_at).toLocaleDateString()}
-                    </span>
+                    <span className="font-medium">{userData.create_at && formatTime(userData.create_at)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Update At:</span>
-                    <span className="font-medium">
-                      {userData.update_at && new Date(userData.update_at).toLocaleDateString()}
-                    </span>
+                    <span className="font-medium">{userData.update_at && formatTime(userData.update_at)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Projects:</span>
@@ -585,7 +579,7 @@ export default function DashboardPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="tracked-projects" className="pt-4">
+          {/* <TabsContent value="tracked-projects" className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {trackedProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
@@ -603,7 +597,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </div>
 
@@ -725,9 +719,7 @@ export default function DashboardPage() {
                   disabled={isLoading}
                 />
                 {deadline && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Selected date: {new Date(deadline).toLocaleDateString()}
-                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">Selected date: {formatTime(deadline)}</p>
                 )}
               </div>
             </div>

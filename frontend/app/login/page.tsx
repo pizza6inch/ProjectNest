@@ -31,7 +31,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="student_id" className="block mb-1 font-medium">
-            StudnetID
+            StudentID / ProfessorID
           </label>
           <Input
             id="student_id"

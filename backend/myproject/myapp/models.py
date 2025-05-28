@@ -83,6 +83,9 @@ class ProjectProgress(models.Model):
     # 預估完成時間
     estimated_time = models.DateTimeField()
 
+    # 專案標題
+    title = models.CharField(max_length=100)
+
     # 進度說明
     progress_note = models.TextField()
 

@@ -15,6 +15,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Plus,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,138 +32,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import StatusBadge from "@/components/status-badge";
-import { getProjectDetail, Project, ProjectDetail } from "@/lib/apiClient";
+import { getProjectDetail, getUserById, Project, ProjectDetail, updateProject } from "@/lib/apiClient";
 import { useParams } from "next/navigation";
 
-// Mock project data
-const project = {
-  id: "1",
-  title: "Machine Learning Algorithm Comparison",
-  description:
-    "This project aims to compare the performance of various machine learning algorithms on different datasets. The goal is to identify which algorithms perform best under specific conditions and data characteristics.",
-  status: "in-progress",
-  deadline: "2025-06-15",
-  progress: 65,
-  teamLead: {
-    name: "Sarah Johnson",
-    avatar: "/placeholder-user.jpg",
-    initials: "SJ",
-    role: "Student",
-  },
-  professor: "Dr. Williams",
-  members: [
-    {
-      name: "Sarah Johnson",
-      avatar: "/placeholder-user.jpg",
-      initials: "SJ",
-      role: "Project Lead",
-    },
-    {
-      name: "Alex Thompson",
-      avatar: "/placeholder-user.jpg",
-      initials: "AT",
-      role: "Student",
-    },
-    {
-      name: "Maya Patel",
-      avatar: "/placeholder-user.jpg",
-      initials: "MP",
-      role: "Student",
-    },
-    {
-      name: "Jason Lee",
-      avatar: "/placeholder-user.jpg",
-      initials: "JL",
-      role: "Student",
-    },
-  ],
-  updates: [
-    {
-      id: "u1",
-      title: "Initial Research Completed",
-      content:
-        "We've completed the initial research phase. We've identified 5 key algorithms to compare: Random Forest, SVM, Neural Networks, Gradient Boosting, and K-Nearest Neighbors.",
-      date: "2025-05-01",
-      author: {
-        name: "Sarah Johnson",
-        avatar: "/placeholder-user.jpg",
-        initials: "SJ",
-      },
-      attachments: [{ name: "research-summary.pdf", size: "2.4 MB" }],
-      likes: 3,
-      comments: [
-        {
-          id: "c1",
-          content: "Great work! Have you considered including decision trees as well?",
-          date: "2025-05-01",
-          author: {
-            name: "Dr. Williams",
-            avatar: "/placeholder-user.jpg",
-            initials: "DW",
-            role: "Professor",
-          },
-        },
-        {
-          id: "c2",
-          content: "Yes, we'll include decision trees in our comparison as well. Thanks for the suggestion!",
-          date: "2025-05-02",
-          author: {
-            name: "Sarah Johnson",
-            avatar: "/placeholder-user.jpg",
-            initials: "SJ",
-          },
-        },
-      ],
-    },
-    {
-      id: "u2",
-      title: "Dataset Selection",
-      content:
-        "We've selected 3 datasets for our comparison: UCI Machine Learning Repository's Iris dataset, MNIST handwritten digits, and a custom dataset we've created for text classification.",
-      date: "2025-05-10",
-      author: {
-        name: "Maya Patel",
-        avatar: "/placeholder-user.jpg",
-        initials: "MP",
-      },
-      attachments: [],
-      likes: 2,
-      comments: [
-        {
-          id: "c3",
-          content: "The MNIST dataset might be too large for some of our algorithms. Let's discuss alternatives.",
-          date: "2025-05-10",
-          author: {
-            name: "Alex Thompson",
-            avatar: "/placeholder-user.jpg",
-            initials: "AT",
-          },
-        },
-      ],
-    },
-    {
-      id: "u3",
-      title: "Implementation Started",
-      content:
-        "We've started implementing the algorithms. Random Forest and SVM implementations are complete. Working on Neural Networks next.",
-      date: "2025-05-20",
-      author: {
-        name: "Jason Lee",
-        avatar: "/placeholder-user.jpg",
-        initials: "JL",
-      },
-      attachments: [{ name: "code-repository-link.txt", size: "1 KB" }],
-      likes: 4,
-      comments: [],
-    },
-  ],
-};
+import { formatTime } from "@/lib/utils";
+
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const id = params.id as string;
 
@@ -171,6 +58,10 @@ export default function ProjectDetailPage() {
   const [newUpdateContent, setNewUpdateContent] = useState("");
   const [newUpdateTitle, setNewUpdateTitle] = useState("");
   const [projectDetail, setProjectDetail] = useState<ProjectDetail>();
+
+  const [addMemberDialog, setAddMemberDialog] = useState(false);
+  const [addMemberId, setAddMemberId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchProjectDetail = async () => {
     if (!id || typeof id !== "string") return;
@@ -200,9 +91,83 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const handleChangeStatus = (status: string) => {
+  const handleChangeStatus = async (status: string) => {
     // In a real app, this would update the project status via an API
-    console.log(`Changing project status to: ${status}`);
+
+    if (!projectDetail?.project.title) return;
+
+    const originalMembers = [
+      ...projectDetail?.students.map((student) => student.user_id),
+      ...projectDetail?.professors.map((professor) => professor.user_id),
+    ];
+
+    await updateProject({
+      project_id: id,
+      title: projectDetail?.project.title,
+      description: projectDetail?.project.description,
+      status: status,
+      deadline: projectDetail.project.deadline,
+      progress: projectDetail.project.progress,
+      users: originalMembers,
+    });
+    fetchProjectDetail();
+  };
+
+  const checkUserIsInGroup = () => {
+    if (!user) return false;
+    if (user?.role === "admin") return true;
+    const userInStudents = projectDetail?.students.find((student) => student.user_id === user.user_id);
+    const userInProfessors = projectDetail?.professors.find((professor) => professor.user_id === user.user_id);
+    return userInStudents || userInProfessors;
+  };
+
+  const handleAddMember = async () => {
+    setIsLoading(true);
+    if (!checkUserIsInGroup()) {
+      toast({
+        title: "Add Member Error",
+        description: "You must in projects to add members",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!projectDetail?.project.title) return;
+
+    const originalMembers = [
+      ...projectDetail?.students.map((student) => student.user_id),
+      ...projectDetail?.professors.map((professor) => professor.user_id),
+    ];
+    console.log(addMemberId);
+
+    try {
+      const user = await getUserById(addMemberId);
+
+      await updateProject({
+        project_id: id,
+        title: projectDetail?.project.title,
+        description: projectDetail?.project.description,
+        status: projectDetail.project.status,
+        deadline: projectDetail.project.deadline,
+        progress: projectDetail.project.progress,
+        users: [...originalMembers, addMemberId],
+      });
+      setIsLoading(false);
+      fetchProjectDetail();
+      setAddMemberId("");
+      setAddMemberDialog(false);
+      toast({
+        title: "Add Member Success",
+      });
+      fetchProjectDetail();
+    } catch {
+      toast({
+        title: "Add Member Error",
+        description: "Please check userId",
+      });
+      setIsLoading(false);
+      return;
+    }
   };
 
   return (
@@ -230,14 +195,18 @@ export default function ProjectDetailPage() {
                   <h3 className="text-sm font-medium mb-1">Status</h3>
                   <div className="flex items-center justify-between">
                     <StatusBadge status={projectDetail?.project.status || ""} />
-                    <Select defaultValue={projectDetail?.project.status} onValueChange={handleChangeStatus}>
+                    <Select
+                      disabled={!checkUserIsInGroup()}
+                      defaultValue={projectDetail?.project.status}
+                      onValueChange={handleChangeStatus}
+                    >
                       <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Change status" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="done">Done</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -258,25 +227,11 @@ export default function ProjectDetailPage() {
                   <h3 className="text-sm font-medium mb-1">Deadline</h3>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{new Date(projectDetail?.project.deadline || "").toLocaleDateString()}</span>
+                    {projectDetail?.project.deadline && <span>{formatTime(projectDetail?.project.deadline)}</span>}
                   </div>
                 </div>
 
                 <Separator />
-
-                {/* <div>
-                  <h3 className="text-sm font-medium mb-2">Project Lead</h3>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={project.teamLead.avatar || "/placeholder.svg"} alt={project.teamLead.name} />
-                      <AvatarFallback>{project.teamLead.initials}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{project.teamLead.name}</p>
-                      <p className="text-xs text-muted-foreground">{project.teamLead.role}</p>
-                    </div>
-                  </div>
-                </div> */}
 
                 <div>
                   <h3 className="text-sm font-medium mb-2">Professor</h3>
@@ -297,7 +252,7 @@ export default function ProjectDetailPage() {
                   <h3 className="text-sm font-medium mb-2">Project Members</h3>
                   <div className="space-y-2">
                     {projectDetail?.students.map((student) => (
-                      <div key={student.name} className="flex items-center gap-2">
+                      <div key={student.user_id} className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={student.image_url} alt={student.name} />
                           <AvatarFallback>{student.name}</AvatarFallback>
@@ -312,7 +267,7 @@ export default function ProjectDetailPage() {
                 </div>
 
                 <div className="pt-2">
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={() => setAddMemberDialog(true)} disabled={!checkUserIsInGroup()}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add Member
                   </Button>
@@ -356,14 +311,15 @@ export default function ProjectDetailPage() {
                       <div className="flex justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={progress. || "/placeholder.svg"} alt={update.author.name} />
-                            <AvatarFallback>{update.author.initials}</AvatarFallback>
+                            <AvatarImage
+                              src={progress.author.image_url || "/placeholder.svg"}
+                              alt={progress.author.name}
+                            />
+                            <AvatarFallback>{progress.author.name}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="text-sm font-medium">{update.author.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(update.date).toLocaleDateString()}
-                            </p>
+                            <p className="text-sm font-medium">{progress.author.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatTime(progress.create_at || "")}</p>
                           </div>
                         </div>
                         <DropdownMenu>
@@ -379,12 +335,12 @@ export default function ProjectDetailPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <CardTitle className="text-lg">{update.title}</CardTitle>
+                      <CardTitle className="text-lg">{progress.title}</CardTitle>
                     </CardHeader>
                     <CardContent className="pb-2">
-                      <p className="whitespace-pre-line">{update.content}</p>
+                      <p className="whitespace-pre-line">{progress.progress_note}</p>
 
-                      {update.attachments.length > 0 && (
+                      {/* {update.attachments.length > 0 && (
                         <div className="mt-4">
                           <h4 className="text-sm font-medium mb-2">Attachments</h4>
                           <div className="space-y-2">
@@ -397,38 +353,32 @@ export default function ProjectDetailPage() {
                             ))}
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </CardContent>
                     <CardFooter className="flex-col items-start pt-2">
                       <div className="flex items-center gap-4 w-full pb-2">
                         <Button variant="ghost" size="sm" className="gap-1">
-                          <ThumbsUp className="h-4 w-4" />
-                          Like ({update.likes})
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
                           <MessageSquare className="h-4 w-4" />
-                          Comment ({update.comments.length})
+                          Comment ({progress.comments.length})
                         </Button>
                       </div>
 
-                      {update.comments.length > 0 && (
+                      {progress.comments.length > 0 && (
                         <div className="w-full border-t pt-2 space-y-3">
-                          {update.comments.map((comment) => (
-                            <div key={comment.id} className="flex gap-2">
+                          {progress.comments.map((comment) => (
+                            <div key={comment.comment_id} className="flex gap-2">
                               <Avatar className="h-7 w-7">
                                 <AvatarImage
-                                  src={comment.author.avatar || "/placeholder.svg"}
+                                  src={comment.author.image_url || "/placeholder.svg"}
                                   alt={comment.author.name}
                                 />
-                                <AvatarFallback>{comment.author.initials}</AvatarFallback>
+                                <AvatarFallback>{comment.author.name}</AvatarFallback>
                               </Avatar>
                               <div className="flex-1">
                                 <div className="bg-muted p-2 rounded-md">
                                   <div className="flex justify-between items-center mb-1">
                                     <p className="text-xs font-medium">{comment.author.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {new Date(comment.date).toLocaleDateString()}
-                                    </p>
+                                    <p className="text-xs text-muted-foreground">{formatTime(comment.create_at)}</p>
                                   </div>
                                   <p className="text-sm">{comment.content}</p>
                                 </div>
@@ -440,7 +390,7 @@ export default function ProjectDetailPage() {
 
                       <div className="flex gap-2 w-full mt-3">
                         <Avatar className="h-7 w-7">
-                          <AvatarImage src="/placeholder-user.jpg" alt="Your Avatar" />
+                          <AvatarImage src={user?.image_url} alt="Your Avatar" />
                           <AvatarFallback>YA</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 flex gap-2">
@@ -522,6 +472,42 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* addMemberDialog */}
+      <Dialog open={addMemberDialog} onOpenChange={setAddMemberDialog}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Student/Professor</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Members input with preview */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-3 space-y-4">
+                <div className="border rounded p-3">
+                  <Input
+                    placeholder="Enter user ID"
+                    value={addMemberId}
+                    onChange={(e) => setAddMemberId(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Adding..
+              </Button>
+            ) : (
+              <Button onClick={() => handleAddMember()} type="submit">
+                Add Member
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

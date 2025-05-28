@@ -123,6 +123,42 @@ export interface Project {
   user_count: number;
 }
 
+export interface Progress {
+  progress_id: string;
+  status: string;
+  estimated_time: string;
+  progress_note: string;
+  created_at: string;
+  updated_at: string;
+  comments: Comment[];
+}
+
+export interface Comment {
+  comment_id: string;
+  user: {
+    user_id: string;
+    name: string;
+  };
+  content: string;
+  created_at: string;
+}
+
+export interface ProjectDetail {
+  project: Project;
+  students: {
+    user_id: string;
+    name: string;
+    email: string;
+    image_url: string;
+  }[];
+  professors: {
+    user_id: string;
+    name: string;
+    email: string;
+  }[];
+  progresses: Progress[];
+}
+
 export interface GetProjectsResponse {
   total: number;
   results: Project[];
@@ -145,9 +181,9 @@ export const getProjects = async (params: {
 };
 
 // TODO: 等後端
-export const getProjectById = async (params: { project_id: string }): Promise<Project> => {
-  const response = await apiClient.get<Project>(`/get_project_by_id/${params.project_id}`);
-  console.log("getProjectById API");
+export const getProjectDetail = async (params: { project_id: string }): Promise<ProjectDetail> => {
+  const response = await apiClient.get<ProjectDetail>(`/project_detail/${params.project_id}`);
+  console.log("project_detail API");
   return response.data;
 };
 

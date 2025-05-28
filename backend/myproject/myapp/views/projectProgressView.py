@@ -35,6 +35,10 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         if not valid:
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
 
+        userId = payload.get("user_id")
+        if not userId:
+            return Response({"error": "User ID not found in token"}, status=status.HTTP_400_BAD_REQUEST)
+
         projectId = request.data.get("project_id")
         estimatedTime = request.data.get("estimated_time")
         progressNote = request.data.get("progress_note")
@@ -47,6 +51,7 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
 
         newProgressdata = {
             "project" : projectId,
+            "user":userId,
             "status" : "pending",
             "estimated_time" : estimatedTime,
             "progress_note" : progressNote
@@ -67,8 +72,12 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         if not valid:
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
 
-        progressId = request.data.get("progress_id")
 
+        userId = payload.get("user_id")
+        if not userId:
+            return Response({"error": "User ID not found in token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        progressId = request.data.get("progress_id")
         if not progressId:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -79,6 +88,7 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
             progress.progress_note = request.data.get("progress_note")
             progress.status = request.data.get("status")
             progress.progress_note = request.data.get("progress_note")
+            progress.user = userId
             progress.save()
 
         except ProjectProgress.DoesNotExist:

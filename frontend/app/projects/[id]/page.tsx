@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   Calendar,
@@ -15,18 +15,27 @@ import {
   MessageSquare,
   MoreHorizontal,
   Plus,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import StatusBadge from "@/components/status-badge";
+import { getProjectDetail, Project, ProjectDetail } from "@/lib/apiClient";
+import { useParams } from "next/navigation";
 
 // Mock project data
 const project = {
@@ -150,64 +159,51 @@ const project = {
       comments: [],
     },
   ],
-}
-
-// Status badge component
-function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case "completed":
-      return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-          <CheckCircle2 className="mr-1 h-3 w-3" />
-          Completed
-        </Badge>
-      )
-    case "in-progress":
-      return (
-        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-          <Clock4 className="mr-1 h-3 w-3" />
-          In Progress
-        </Badge>
-      )
-    case "pending":
-      return (
-        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-          <AlertCircle className="mr-1 h-3 w-3" />
-          Pending
-        </Badge>
-      )
-    default:
-      return <Badge>{status}</Badge>
-  }
-}
+};
 
 export default function ProjectDetailPage() {
-  const [newComment, setNewComment] = useState("")
-  const [activeTab, setActiveTab] = useState("updates")
-  const [newUpdateContent, setNewUpdateContent] = useState("")
-  const [newUpdateTitle, setNewUpdateTitle] = useState("")
+  const params = useParams();
+
+  const id = params.id as string;
+
+  const [newComment, setNewComment] = useState("");
+  const [activeTab, setActiveTab] = useState("updates");
+  const [newUpdateContent, setNewUpdateContent] = useState("");
+  const [newUpdateTitle, setNewUpdateTitle] = useState("");
+  const [projectDetail, setProjectDetail] = useState<ProjectDetail>();
+
+  const fetchProjectDetail = async () => {
+    if (!id || typeof id !== "string") return;
+    const response = await getProjectDetail({ project_id: id });
+    setProjectDetail(response);
+    console.log(response);
+  };
+
+  useEffect(() => {
+    fetchProjectDetail();
+  }, []);
 
   const handlePostComment = (updateId: string) => {
     if (newComment.trim()) {
       // In a real app, this would send the comment to an API
-      console.log(`Posting comment to update ${updateId}: ${newComment}`)
-      setNewComment("")
+      console.log(`Posting comment to update ${updateId}: ${newComment}`);
+      setNewComment("");
     }
-  }
+  };
 
   const handlePostUpdate = () => {
     if (newUpdateTitle.trim() && newUpdateContent.trim()) {
       // In a real app, this would send the update to an API
-      console.log(`Posting new update: ${newUpdateTitle} - ${newUpdateContent}`)
-      setNewUpdateTitle("")
-      setNewUpdateContent("")
+      console.log(`Posting new update: ${newUpdateTitle} - ${newUpdateContent}`);
+      setNewUpdateTitle("");
+      setNewUpdateContent("");
     }
-  }
+  };
 
   const handleChangeStatus = (status: string) => {
     // In a real app, this would update the project status via an API
-    console.log(`Changing project status to: ${status}`)
-  }
+    console.log(`Changing project status to: ${status}`);
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -219,7 +215,7 @@ export default function ProjectDetailPage() {
               <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight">{project.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{projectDetail?.project.title}</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -233,8 +229,8 @@ export default function ProjectDetailPage() {
                 <div>
                   <h3 className="text-sm font-medium mb-1">Status</h3>
                   <div className="flex items-center justify-between">
-                    <StatusBadge status={project.status} />
-                    <Select defaultValue={project.status} onValueChange={handleChangeStatus}>
+                    <StatusBadge status={projectDetail?.project.status || ""} />
+                    <Select defaultValue={projectDetail?.project.status} onValueChange={handleChangeStatus}>
                       <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Change status" />
                       </SelectTrigger>
@@ -252,9 +248,9 @@ export default function ProjectDetailPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Overall Completion</span>
-                      <span>{project.progress}%</span>
+                      <span>{projectDetail?.project.progress}%</span>
                     </div>
-                    <Progress value={project.progress} className="h-2" />
+                    <Progress value={projectDetail?.project.progress} className="h-2" />
                   </div>
                 </div>
 
@@ -262,13 +258,13 @@ export default function ProjectDetailPage() {
                   <h3 className="text-sm font-medium mb-1">Deadline</h3>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{new Date(project.deadline).toLocaleDateString()}</span>
+                    <span>{new Date(projectDetail?.project.deadline || "").toLocaleDateString()}</span>
                   </div>
                 </div>
 
                 <Separator />
 
-                <div>
+                {/* <div>
                   <h3 className="text-sm font-medium mb-2">Project Lead</h3>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
@@ -280,13 +276,18 @@ export default function ProjectDetailPage() {
                       <p className="text-xs text-muted-foreground">{project.teamLead.role}</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <div>
                   <h3 className="text-sm font-medium mb-2">Professor</h3>
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm">{project.professor}</span>
+                  <div className="space-y-2">
+                    {projectDetail?.professors.map((professor) => (
+                      <div className="flex items-center gap-2" key={professor.user_id}>
+                        <GraduationCap className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm">{professor.name}</span>
+                        <span className="text-xs text-muted-foreground">{professor.email}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -295,15 +296,15 @@ export default function ProjectDetailPage() {
                 <div>
                   <h3 className="text-sm font-medium mb-2">Project Members</h3>
                   <div className="space-y-2">
-                    {project.members.map((member) => (
-                      <div key={member.name} className="flex items-center gap-2">
+                    {projectDetail?.students.map((student) => (
+                      <div key={student.name} className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                          <AvatarFallback>{member.initials}</AvatarFallback>
+                          <AvatarImage src={student.image_url} alt={student.name} />
+                          <AvatarFallback>{student.name}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium">{member.name}</p>
-                          <p className="text-xs text-muted-foreground">{member.role}</p>
+                          <p className="text-sm font-medium">{student.name}</p>
+                          <p className="text-xs text-muted-foreground">{"student"}</p>
                         </div>
                       </div>
                     ))}
@@ -325,10 +326,7 @@ export default function ProjectDetailPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button className="w-full" variant="outline">
-                  Track Project
-                </Button>
-                <Button className="w-full" variant="outline">
-                  Export Project Data
+                  Edit Project Detail
                 </Button>
               </CardContent>
             </Card>
@@ -341,7 +339,7 @@ export default function ProjectDetailPage() {
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p>{project.description}</p>
+                <p>{projectDetail?.project.description}</p>
               </CardContent>
             </Card>
 
@@ -352,13 +350,13 @@ export default function ProjectDetailPage() {
               </TabsList>
 
               <TabsContent value="updates" className="space-y-4 pt-4">
-                {project.updates.map((update) => (
-                  <Card key={update.id} className="mb-6">
+                {projectDetail?.progresses.map((progress) => (
+                  <Card key={progress.progress_id} className="mb-6">
                     <CardHeader className="pb-2">
                       <div className="flex justify-between">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={update.author.avatar || "/placeholder.svg"} alt={update.author.name} />
+                            <AvatarImage src={progress. || "/placeholder.svg"} alt={update.author.name} />
                             <AvatarFallback>{update.author.initials}</AvatarFallback>
                           </Avatar>
                           <div>
@@ -525,5 +523,5 @@ export default function ProjectDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

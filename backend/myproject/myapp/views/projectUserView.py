@@ -37,7 +37,7 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
             item["user_count"] = count
 
         return Response(project_data, status=st.HTTP_200_OK)
-    
+
     # 查詢專案詳細資訊
     @action(detail=True, methods=["get"], url_path="project_detail")
     def project_detail(self, request, pk=None):
@@ -55,22 +55,25 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
         professors = []
         for pu in project_users:
             if pu.user.role == "student":
-                students.append({"user_id": pu.user.user_id, "name": pu.user.name})
+                students.append({"user_id": pu.user.user_id, "name": pu.user.name,"email":pu.user.email,"image_url":pu.user.image_url})
             elif pu.user.role == "professor":
-                professors.append({"user_id": pu.user.user_id, "name": pu.user.name})
+                professors.append({"user_id": pu.user.user_id, "name": pu.user.name,"email":pu.user.email})
 
         # Project Progresses with comments
         progresses = ProjectProgress.objects.filter(project=project).order_by("create_at")
         progress_list = []
         for progress in progresses:
             comments = Comment.objects.filter(progress=progress).order_by("create_at").select_related("user")
+
+
             comment_list = []
             for comment in comments:
                 comment_list.append({
                     "comment_id": comment.comment_id,
-                    "user": {
+                    "author": {
                         "user_id": comment.user.user_id if comment.user else None,
                         "name": comment.user.name if comment.user else None,
+                        "image_url":progress.user.name,
                     },
                     "content": comment.content,
                     "create_at": comment.create_at,
@@ -84,6 +87,11 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
                 "create_at": progress.create_at,
                 "update_at": progress.update_at,
                 "comments": comment_list,
+                "author":{
+                    "user_id":progress.user.user_id,
+                    "name":progress.user.name,
+                    "image_url":progress.user.name,
+                },
             })
 
         return Response({
@@ -93,4 +101,3 @@ class ProjectUserAPIView(viewsets.ModelViewSet):
             "progresses": progress_list,
         }, status=st.HTTP_200_OK)
 
-        

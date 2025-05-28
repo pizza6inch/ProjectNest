@@ -73,6 +73,9 @@ class ProjectProgress(models.Model):
     # FK 連結到 Project id
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
+    # FK 連結到 User id
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
     # 進度狀態 : 完成、進行中
     status = models.CharField(
         max_length=20, choices=[("done", "Done"), ("pending", "Pending"), ("in_progress", "In Progress")],

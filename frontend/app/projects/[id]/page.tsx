@@ -45,7 +45,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import StatusBadge from "@/components/status-badge";
-import { getProjectDetail, getUserById, Project, ProjectDetail, updateProject } from "@/lib/apiClient";
+import { createComment, getProjectDetail, getUserById, Project, ProjectDetail, updateProject } from "@/lib/apiClient";
 import { User } from "@/lib/types";
 import { useParams } from "next/navigation";
 
@@ -163,12 +163,25 @@ export default function ProjectDetailPage() {
     }
   }, [projectDetail]);
 
-  const handlePostComment = (updateId: string) => {
-    if (newComment.trim()) {
-      // In a real app, this would send the comment to an API
-      console.log(`Posting comment to update ${updateId}: ${newComment}`);
-      setNewComment("");
+  const handlePostComment = async (progressId: string) => {
+    if (!user) return;
+
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      await createComment({ progress: progressId, content: newComment });
+      toast({
+        title: "Post Comment Success",
+      });
+    } catch {
+      toast({
+        title: "Post Comment Failed",
+      });
     }
+
+    setNewComment("");
+    fetchProjectDetail();
+    setIsLoading(false);
   };
 
   const handlePostUpdate = () => {
@@ -524,7 +537,7 @@ export default function ProjectDetailPage() {
                           />
                           <Button
                             size="icon"
-                            onClick={() => handlePostComment(update.id)}
+                            onClick={() => handlePostComment(progress.progress_id)}
                             disabled={!newComment.trim()}
                           >
                             <Send className="h-4 w-4" />

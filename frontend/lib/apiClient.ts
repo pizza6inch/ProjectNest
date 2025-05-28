@@ -153,8 +153,17 @@ export interface Comment {
 
 export interface ProjectDetail {
   project: Project;
-  students: User[];
-  professors: User[];
+  students: {
+    user_id: string;
+    name: string;
+    email: string;
+    image_url: string;
+  }[];
+  professors: {
+    user_id: string;
+    name: string;
+    email: string;
+  }[];
   progresses: Progress[];
 }
 
@@ -179,6 +188,7 @@ export const getProjects = async (params: {
   return response.data;
 };
 
+// TODO: 等後端
 export const getProjectDetail = async (params: { project_id: string }): Promise<ProjectDetail> => {
   const response = await apiClient.get<ProjectDetail>(`/project_detail/${params.project_id}`);
   console.log("project_detail API");
@@ -232,8 +242,6 @@ export const deleteProject = async (project_id: string) => {
   console.log("deleteProject API");
 };
 
-// export const createComment = async (project_id:string,user)
-
 export const getToken = async ({
   user_id,
   password,
@@ -247,4 +255,30 @@ export const getToken = async ({
   });
   console.log("getToken API");
   return response.data;
+};
+
+// Comment API functions
+
+export const createComment = async (commentData: {
+  progress: number;
+  content: string;
+}) => {
+  await apiClient.post("/create_comment", commentData);
+  console.log("createComment API");
+};
+
+export const updateComment = async (
+  comment_id: number,
+  commentData: {
+    progress: number;
+    content: string;
+  }
+) => {
+  await apiClient.put(`/update_comment/${comment_id}`, commentData);
+  console.log("updateComment API");
+};
+
+export const deleteComment = async (comment_id: number) => {
+  await apiClient.delete(`/delete_comment/${comment_id}`);
+  console.log("deleteComment API");
 };

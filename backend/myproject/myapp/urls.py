@@ -31,4 +31,9 @@ urlpatterns = [
     # project user api
     path('api/my_projects/<str:pk>', ProjectUserAPIView.as_view({'get': 'my_projects'}), name='project-user'),
     path('api/project_detail/<str:pk>', ProjectUserAPIView.as_view({'get': 'project_detail'}), name='project-user'),
+
+    # comment api
+    path('api/create_comment', CommentListAPIView.as_view({'post': 'create_comment'}), name='comment-list'),
+    path('api/update_comment/<int:pk>', CommentListAPIView.as_view({'put': 'update_comment'}), name='comment-list'),
+    path('api/delete_comment/<int:pk>', CommentListAPIView.as_view({'delete': 'delete_comment'}), name='comment-list'),
 ]

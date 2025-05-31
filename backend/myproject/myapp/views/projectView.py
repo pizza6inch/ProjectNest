@@ -74,20 +74,20 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         users = request.data.pop("users", [])
 
         project_serializer = ProjectSerializer(data=request.data)
-        if project_serializer.is_valid():
-            project = project_serializer.save()  # 儲存 project
+        if not project_serializer.is_valid():
+            return Response(project_serializer.errors, status=st.HTTP_400_BAD_REQUEST)
         
-            # 為每個 user ID 建立 ProjectUser 關聯
-            for user_id in users:
-                try:
-                   user = User.objects.get(user_id=user_id)
-                   ProjectUser.objects.create(user=user, project=project)
-                except User.DoesNotExist:
-                    # 可選：你也可以選擇回滾 transaction 或是略過錯誤
-                    continue
-            
-            return Response(project_serializer.data, status=st.HTTP_201_CREATED)
-        return Response(project_serializer.errors, status=st.HTTP_400_BAD_REQUEST)
+        project = project_serializer.save()  # 儲存 project
+        # 為每個 user ID 建立 ProjectUser 關聯
+        for user_id in users:
+            try:
+               user = User.objects.get(user_id=user_id)
+               ProjectUser.objects.create(user=user, project=project)
+            except User.DoesNotExist:
+                # 可選：你也可以選擇回滾 transaction 或是略過錯誤
+                continue
+        
+        return Response(project_serializer.data, status=st.HTTP_201_CREATED)
     
     # 計算專案總數
     @action(detail=True, methods=["get"])
@@ -118,29 +118,28 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         users = request.data.pop("users", [])  # 拿掉 users，剩下的是 project 欄位
 
         serializer = ProjectSerializer(project, data=request.data)
-        if serializer.is_valid():
-            try:
-                with transaction.atomic():
-                    # 更新專案基本欄位
-                    updated_project = serializer.save()
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=st.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                # 更新專案基本欄位
+                updated_project = serializer.save()
 
-                    # 刪除舊的關聯
-                    ProjectUser.objects.filter(project=updated_project).delete()
+                # 刪除舊的關聯
+                ProjectUser.objects.filter(project=updated_project).delete()
 
-                    # 建立新的關聯
-                    for user_id in users:
-                        try:
-                            user = User.objects.get(user_id=user_id)
-                            ProjectUser.objects.create(user=user, project=updated_project)
-                        except User.DoesNotExist:
-                            continue  # 可以改為丟錯誤，視需求
-
-                return Response(serializer.data, status=st.HTTP_200_OK)
-
-            except Exception as e:
-                return Response({"error": str(e)}, status=st.HTTP_400_BAD_REQUEST)
-
-        return Response(serializer.errors, status=st.HTTP_400_BAD_REQUEST)
+                # 建立新的關聯
+                for user_id in users:
+                    user = User.objects.get(user_id=user_id)
+                    ProjectUser.objects.create(user=user, project=updated_project)
+     
+        except User.DoesNotExist:
+            pass
+        except Exception as e:
+            return Response({"error": str(e)}, status=st.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.data, status=st.HTTP_200_OK)
+        
         
     # 刪除專案
     @action(detail=True, methods=["delete"])   

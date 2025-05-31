@@ -104,7 +104,7 @@ class ProjectListAPIView(viewsets.ModelViewSet):
         valid, payload = IsJwtTokenValid(request)
         if not valid:
             return Response({"error": payload}, status=st.HTTP_401_UNAUTHORIZED)
-        print(payload.get("role"), payload.get("user_id"), pk)
+
         is_member = ProjectUser.objects.filter(user_id=payload.get("user_id"), project=pk).exists()
         
         if payload.get("role") != "admin" and not is_member:

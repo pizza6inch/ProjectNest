@@ -66,16 +66,8 @@ class UserListAPIView(viewsets.ModelViewSet):
     # 新增使用者
     @action(detail=False, methods=["post"])
     def create_user(self, request):
-        # valid, payload = IsJwtTokenValid(request)
-        # if not valid:
-        #     return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
-
 
         serializer = UserSerializer(data=request.data)
-        # print("POST data:", request.data)
-        # print("Is valid?", serializer.is_valid())
-        # print("Errors:", serializer.errors)
-        # print(request.data, serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

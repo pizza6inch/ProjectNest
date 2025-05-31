@@ -4,3 +4,4 @@ from .projectProgressView import *
 from .commentView import *
 from .projectUserView import *
 from .loginView import *
+from .trackprojectView import *

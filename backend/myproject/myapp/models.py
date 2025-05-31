@@ -122,3 +122,32 @@ class ProjectUser(models.Model):
 
     # FK 連結到 Project id
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+class TrackProjectUser(models.Model):
+    # FK 連結到 User id
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # FK 連結到 Project id
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+class ProjectEvent(models.Model):
+    # FK links to project
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    
+    # create User
+    user_name = models.CharField(max_length=50)
+    
+    # content
+    content = models.CharField(max_length=200)
+
+    # create datetime
+    create_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Only check when creating new instance
+            project_events = ProjectEvent.objects.filter(project=self.project).order_by('create_at')
+            if project_events.count() >= 20:
+                # Delete the oldest ProjectEvent
+                oldest_event = project_events.first()
+                oldest_event.delete()
+        super().save(*args, **kwargs)

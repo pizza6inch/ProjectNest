@@ -86,3 +86,16 @@ class ProjectUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectUser
         fields = "__all__"
+
+class TrackProjectUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = "__all__"
+        
+class ProjectEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectEvent
+        fields = "__all__"
+
+    
+    

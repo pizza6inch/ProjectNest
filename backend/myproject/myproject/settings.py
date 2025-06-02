@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import pymysql
-from decouple import Config, RepositoryEnv
+from decouple import config, RepositoryEnv
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,16 +79,15 @@ WSGI_APPLICATION = "myproject.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 pymysql.install_as_MySQLdb()
-config = Config(repository=RepositoryEnv("db.env"))
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "projectNest_database",
-        "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PASSWORD"),
-        "HOST": "",
-        "PORT": "",
+        "NAME": config("DB_NAME", default="projectNest_database"),
+        "USER": config("DB_USER", default="root"),
+        "PASSWORD": config("DB_PASSWORD", default=""),
+        "HOST": config("DB_HOST", default="localhost"),
+        "PORT": config("DB_PORT", default="3306"),
     }
 }
 

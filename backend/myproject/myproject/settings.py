@@ -28,7 +28,7 @@ SECRET_KEY = "django-insecure-t1z94wwr58_g9xsemx2y9d@9#5z))$f9f9*5od6$)j=6tuus5z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["projectnest-hvcb.onrender.com"]
 
 
 # Application definition
@@ -142,4 +142,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "project-nest-nu.vercel.app"
 ]

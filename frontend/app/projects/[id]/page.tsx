@@ -104,6 +104,7 @@ export default function ProjectDetailPage() {
   // edit update form
   const [editUpdateTitle, setEditUpdateTitle] = useState("");
   const [editUpdateContent, setEditUpdateContent] = useState("");
+  const [editUpdateEstimatedTime, setEditUpdateEstimatedTime] = useState("");
 
   const [members, setMembers] = useState<
     {
@@ -188,6 +189,14 @@ export default function ProjectDetailPage() {
     }
   }, [projectDetail]);
 
+  useEffect(() => {
+    if (selectedUpdate) {
+      setEditUpdateTitle(selectedUpdate?.title);
+      setEditUpdateContent(selectedUpdate?.progress_note);
+      setEditUpdateEstimatedTime(selectedUpdate.estimated_time);
+    }
+  }, [selectedUpdate]);
+
   const handlePostComment = async (progressId: string) => {
     if (!user) return;
 
@@ -230,15 +239,16 @@ export default function ProjectDetailPage() {
     if (isLoading) return;
     setIsLoading(true);
 
+    if (!newUpdateTitle || !newUpdateContent || !newUpdateEstimatedTime) {
+      toast({
+        title: "Post Update Error",
+        description: "All fields are required",
+      });
+      return;
+    }
+
     if (projectDetail?.project.project_id)
       try {
-        console.log({
-          project_id: projectDetail?.project.project_id,
-          title: newUpdateTitle,
-          progress_note: newUpdateContent,
-          estimated_time: newUpdateEstimatedTime,
-        });
-
         await createProgress({
           project_id: projectDetail?.project.project_id,
           title: newUpdateTitle,
@@ -246,11 +256,11 @@ export default function ProjectDetailPage() {
           estimated_time: newUpdateEstimatedTime,
         });
         toast({
-          title: "Post Comment Success",
+          title: "Post Update Success",
         });
       } catch {
         toast({
-          title: "Post Comment Failed",
+          title: "Post Update Failed",
         });
       }
 
@@ -550,8 +560,22 @@ export default function ProjectDetailPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit Update</DropdownMenuItem>
-                            <DropdownMenuItem>Delete Update</DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setIsEditUpdateDialogOpen(true);
+                                setSelectedUpdate(progress);
+                              }}
+                            >
+                              Edit Update
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setIsDeleteUpdateDialogOpen(true);
+                                setSelectedUpdate(progress);
+                              }}
+                            >
+                              Delete Update
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -941,6 +965,24 @@ export default function ProjectDetailPage() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="estimated_time" className="text-right">
+                estimated_time
+              </Label>
+              <div className="col-span-3">
+                <Calendar
+                  mode="single"
+                  selected={editUpdateEstimatedTime ? new Date(editUpdateEstimatedTime) : undefined}
+                  onSelect={(date) => setEditUpdateEstimatedTime(date ? date.toISOString() : "")}
+                  disabled={isLoading}
+                />
+                {editUpdateEstimatedTime && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Selected date: {formatTime(editUpdateEstimatedTime)}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="update_content" className="text-right">
                 Content
               </Label>
@@ -964,11 +1006,16 @@ export default function ProjectDetailPage() {
                   if (!selectedUpdate) return;
                   setIsLoading(true);
                   try {
+                    console.log({
+                      title: editUpdateTitle,
+                      progress_note: editUpdateContent,
+                      estimated_time: editUpdateEstimatedTime,
+                    });
+
                     await updateProgress(selectedUpdate.progress_id, {
                       title: editUpdateTitle,
                       progress_note: editUpdateContent,
-                      project_id: id,
-                      estimated_time: "", // Assuming no change here
+                      estimated_time: editUpdateEstimatedTime,
                     });
                     toast({ title: "Update edited successfully" });
                     setIsEditUpdateDialogOpen(false);

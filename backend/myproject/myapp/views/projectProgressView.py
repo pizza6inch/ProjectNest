@@ -70,7 +70,7 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         )
 
     @action(detail=False, methods=["put"])
-    def updateProgress(self, request):
+    def updateProgress(self, request,pk=None):
         valid, payload = IsJwtTokenValid(request)
         if not valid:
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
@@ -79,19 +79,16 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         userId = payload.get("user_id")
         if not userId:
             return Response({"error": "User ID not found in token"}, status=status.HTTP_400_BAD_REQUEST)
-
-        progressId = request.data.get("progress_id")
+        progressId = pk
         if not progressId:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             progress = ProjectProgress.objects.get(progress_id=progressId)
-
+            progress.title = request.data.get("title")
             progress.estimated_time = request.data.get("estimated_time")
             progress.progress_note = request.data.get("progress_note")
-            progress.status = request.data.get("status")
-            progress.progress_note = request.data.get("progress_note")
-            progress.user = userId
+            # progress.status = "pending"
             progress.save()
 
         except ProjectProgress.DoesNotExist:
@@ -104,12 +101,12 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         )
 
     @action(detail=False, methods=["delete"])
-    def deleteProgress(self, request, progressId=None):
+    def deleteProgress(self, request, pk=None):
         valid, payload = IsJwtTokenValid(request)
         if not valid:
             return Response({"error": payload}, status=status.HTTP_401_UNAUTHORIZED)
         try:
-            progress = ProjectProgress.objects.get(progress_id=progressId)
+            progress = ProjectProgress.objects.get(progress_id=pk)
             progress.delete()
         except ProjectProgress.DoesNotExist:
             return Response({"error": "Progress does not exist"}, status=status.HTTP_404_NOT_FOUND)
@@ -117,5 +114,5 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(
-            {"message": f"delete project {progressId} success"}, status=status.HTTP_200_OK
+            {"message": f"delete project {pk} success"}, status=status.HTTP_200_OK
         )

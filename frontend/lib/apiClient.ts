@@ -296,7 +296,6 @@ export const updateProgress = async (
   progressData: {
     estimated_time: string;
     progress_note: string;
-    project_id: string;
     title: string;
   }
 ) => {

@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   Plus,
   Loader2,
+  Trash2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,20 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import StatusBadge from "@/components/status-badge";
-import { createComment, getProjectDetail, getUserById, Project, ProjectDetail, updateProject } from "@/lib/apiClient";
+import {
+  createComment,
+  getProjectDetail,
+  getUserById,
+  Project,
+  Progress as ProgressType,
+  ProjectDetail,
+  updateProject,
+  deleteProject,
+  deleteComment,
+  updateProgress,
+  deleteProgress,
+  createProgress,
+} from "@/lib/apiClient";
 import { User } from "@/lib/types";
 import { useParams } from "next/navigation";
 
@@ -66,11 +80,18 @@ export default function ProjectDetailPage() {
   const [activeTab, setActiveTab] = useState("updates");
   const [newUpdateContent, setNewUpdateContent] = useState("");
   const [newUpdateTitle, setNewUpdateTitle] = useState("");
+  const [newUpdateEstimatedTime, setNewUpdateEstimatedTime] = useState("");
   const [projectDetail, setProjectDetail] = useState<ProjectDetail>();
 
-  const [addMemberDialog, setAddMemberDialog] = useState(false);
   const [addMemberId, setAddMemberId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [addMemberDialog, setAddMemberDialog] = useState(false);
+  const [isDeleteProjectDialogOpen, setIsDeleteProjectDialogOpen] = useState(false);
+  const [isDeleteCommentDialogOpen, setIsDeleteCommentDialogOpen] = useState(false);
+  const [isEditUpdateDialogOpen, setIsEditUpdateDialogOpen] = useState(false);
+  const [isDeleteUpdateDialogOpen, setIsDeleteUpdateDialogOpen] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState("");
+  const [selectedUpdate, setSelectedUpdate] = useState<ProgressType | null>(null);
 
   // edit project form
   const [isEditProjectDialogOpen, setIsEditProjectDialogOpen] = useState(false);
@@ -79,6 +100,10 @@ export default function ProjectDetailPage() {
   const [status, setStatus] = useState("");
   const [deadline, setDeadline] = useState("");
   const [progress, setProgress] = useState(0);
+
+  // edit update form
+  const [editUpdateTitle, setEditUpdateTitle] = useState("");
+  const [editUpdateContent, setEditUpdateContent] = useState("");
 
   const [members, setMembers] = useState<
     {
@@ -184,13 +209,54 @@ export default function ProjectDetailPage() {
     setIsLoading(false);
   };
 
-  const handlePostUpdate = () => {
-    if (newUpdateTitle.trim() && newUpdateContent.trim()) {
-      // In a real app, this would send the update to an API
-      console.log(`Posting new update: ${newUpdateTitle} - ${newUpdateContent}`);
-      setNewUpdateTitle("");
-      setNewUpdateContent("");
+  const handleDeleteComment = async () => {
+    if (!selectedCommentId) return;
+    setIsLoading(true);
+    try {
+      await deleteComment(selectedCommentId);
+      toast({ title: "Comment deleted successfully" });
+      setIsDeleteCommentDialogOpen(false);
+      fetchProjectDetail();
+    } catch (error) {
+      toast({ title: "Failed to delete comment" });
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleCreateUpdate = async () => {
+    if (!user) return;
+
+    if (isLoading) return;
+    setIsLoading(true);
+
+    if (projectDetail?.project.project_id)
+      try {
+        console.log({
+          project_id: projectDetail?.project.project_id,
+          title: newUpdateTitle,
+          progress_note: newUpdateContent,
+          estimated_time: newUpdateEstimatedTime,
+        });
+
+        await createProgress({
+          project_id: projectDetail?.project.project_id,
+          title: newUpdateTitle,
+          progress_note: newUpdateContent,
+          estimated_time: newUpdateEstimatedTime,
+        });
+        toast({
+          title: "Post Comment Success",
+        });
+      } catch {
+        toast({
+          title: "Post Comment Failed",
+        });
+      }
+
+    setNewComment("");
+    fetchProjectDetail();
+    setIsLoading(false);
   };
 
   const handleChangeStatus = async (status: string) => {
@@ -300,6 +366,22 @@ export default function ProjectDetailPage() {
       fetchProjectDetail();
     } catch (err) {
       toast({ title: "Edit Project Error", description: `${err}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectDetail?.project.project_id) return;
+    setIsLoading(true);
+    try {
+      await deleteProject(projectDetail.project.project_id);
+      toast({ title: "Project deleted successfully" });
+      setIsDeleteProjectDialogOpen(false);
+      // Redirect to home or projects list after deletion
+      window.location.href = "/";
+    } catch (error) {
+      toast({ title: "Failed to delete project" });
     } finally {
       setIsLoading(false);
     }
@@ -418,6 +500,9 @@ export default function ProjectDetailPage() {
                 <Button className="w-full" variant="outline" onClick={() => setIsEditProjectDialogOpen(true)}>
                   Edit Project Detail
                 </Button>
+                <Button className="w-full" variant="destructive" onClick={() => setIsDeleteProjectDialogOpen(true)}>
+                  Delete Project
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -510,12 +595,23 @@ export default function ProjectDetailPage() {
                                 <AvatarFallback>{comment.author.name}</AvatarFallback>
                               </Avatar>
                               <div className="flex-1">
-                                <div className="bg-muted p-2 rounded-md">
+                                <div className="bg-muted p-2 rounded-md relative">
                                   <div className="flex justify-between items-center mb-1">
                                     <p className="text-xs font-medium">{comment.author.name}</p>
                                     <p className="text-xs text-muted-foreground">{formatTime(comment.create_at)}</p>
                                   </div>
                                   <p className="text-sm">{comment.content}</p>
+                                  <Button
+                                    className="w-[24px] h-[24px] absolute right-2 bottom-2"
+                                    variant={"destructive"}
+                                    disabled={user?.user_id !== comment.author.user_id}
+                                    onClick={() => {
+                                      setIsDeleteCommentDialogOpen(true);
+                                      setSelectedCommentId(comment.comment_id);
+                                    }}
+                                  >
+                                    <Trash2 size={24} />
+                                  </Button>
                                 </div>
                               </div>
                             </div>
@@ -568,6 +664,22 @@ export default function ProjectDetailPage() {
                         onChange={(e) => setNewUpdateTitle(e.target.value)}
                       />
                     </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="estimated_time" className="text-right">
+                        estimated_time
+                      </Label>
+                      <div className="col-span-3">
+                        <Calendar
+                          mode="single"
+                          selected={newUpdateEstimatedTime ? new Date(newUpdateEstimatedTime) : undefined}
+                          onSelect={(date) => setNewUpdateEstimatedTime(date ? date.toISOString() : "")}
+                          disabled={isLoading}
+                        />
+                        {newUpdateEstimatedTime && (
+                          <p className="mt-2 text-sm text-muted-foreground">Selected date: {formatTime(deadline)}</p>
+                        )}
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <label htmlFor="update-content" className="text-sm font-medium">
                         Content
@@ -580,7 +692,8 @@ export default function ProjectDetailPage() {
                         onChange={(e) => setNewUpdateContent(e.target.value)}
                       />
                     </div>
-                    <div className="space-y-2">
+
+                    {/* <div className="space-y-2">
                       <label className="text-sm font-medium">Attachments</label>
                       <div className="flex items-center justify-center border border-dashed border-input rounded-md p-6">
                         <div className="flex flex-col items-center gap-1 text-center">
@@ -594,10 +707,10 @@ export default function ProjectDetailPage() {
                           </Button>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </CardContent>
                   <CardFooter>
-                    <Button onClick={handlePostUpdate} disabled={!newUpdateTitle.trim() || !newUpdateContent.trim()}>
+                    <Button onClick={handleCreateUpdate} disabled={!newUpdateTitle.trim() || !newUpdateContent.trim()}>
                       Post Update
                     </Button>
                   </CardFooter>
@@ -764,6 +877,149 @@ export default function ProjectDetailPage() {
                 Save Changes
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* delete project dialog */}
+      <Dialog open={isDeleteProjectDialogOpen} onOpenChange={setIsDeleteProjectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the project "{projectDetail?.project.title}"? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteProjectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteProject} disabled={isLoading}>
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* delete comment dialog */}
+      <Dialog open={isDeleteCommentDialogOpen} onOpenChange={setIsDeleteCommentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Comment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteCommentDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteComment} disabled={isLoading}>
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* edit update dialog */}
+      <Dialog open={isEditUpdateDialogOpen} onOpenChange={setIsEditUpdateDialogOpen}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Update</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="update_title" className="text-right">
+                Title
+              </Label>
+              <Input
+                id="update_title"
+                value={editUpdateTitle}
+                onChange={(e) => setEditUpdateTitle(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="update_content" className="text-right">
+                Content
+              </Label>
+              <Textarea
+                id="update_content"
+                value={editUpdateContent}
+                onChange={(e) => setEditUpdateContent(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            {isLoading ? (
+              <Button disabled>
+                <Loader2 className="animate-spin" />
+                Saving...
+              </Button>
+            ) : (
+              <Button
+                onClick={async () => {
+                  if (!selectedUpdate) return;
+                  setIsLoading(true);
+                  try {
+                    await updateProgress(selectedUpdate.progress_id, {
+                      title: editUpdateTitle,
+                      progress_note: editUpdateContent,
+                      project_id: id,
+                      estimated_time: "", // Assuming no change here
+                    });
+                    toast({ title: "Update edited successfully" });
+                    setIsEditUpdateDialogOpen(false);
+                    fetchProjectDetail();
+                  } catch (error) {
+                    toast({ title: "Failed to edit update" });
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+              >
+                Save Changes
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* delete update dialog */}
+      <Dialog open={isDeleteUpdateDialogOpen} onOpenChange={setIsDeleteUpdateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Update</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this update? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteUpdateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!selectedUpdate) return;
+                setIsLoading(true);
+                try {
+                  await deleteProgress(selectedUpdate.progress_id);
+                  toast({ title: "Update deleted successfully" });
+                  setIsDeleteUpdateDialogOpen(false);
+                  fetchProjectDetail();
+                } catch (error) {
+                  toast({ title: "Failed to delete update" });
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

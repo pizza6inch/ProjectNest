@@ -42,8 +42,10 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
         projectId = request.data.get("project_id")
         estimatedTime = request.data.get("estimated_time")
         progressNote = request.data.get("progress_note")
+        title = request.data.get("title")
 
-        if not projectId or not estimatedTime or not progressNote:
+
+        if not projectId or not estimatedTime or not progressNote or not title:
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not Project.objects.filter(project_id=projectId).exists():
@@ -54,7 +56,8 @@ class ProjectProgressAPIView(viewsets.ModelViewSet):
             "user":userId,
             "status" : "pending",
             "estimated_time" : estimatedTime,
-            "progress_note" : progressNote
+            "progress_note" : progressNote,
+            "title":title
         }
         serializer = ProjectProgressSerializer(data=newProgressdata)
 

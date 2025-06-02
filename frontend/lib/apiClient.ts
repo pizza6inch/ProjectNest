@@ -259,18 +259,15 @@ export const getToken = async ({
 
 // Comment API functions
 
-export const createComment = async (commentData: {
-  progress: number;
-  content: string;
-}) => {
+export const createComment = async (commentData: { progress: string; content: string }) => {
   await apiClient.post("/create_comment", commentData);
   console.log("createComment API");
 };
 
 export const updateComment = async (
-  comment_id: number,
+  comment_id: string,
   commentData: {
-    progress: number;
+    progress: string;
     content: string;
   }
 ) => {
@@ -278,7 +275,36 @@ export const updateComment = async (
   console.log("updateComment API");
 };
 
-export const deleteComment = async (comment_id: number) => {
+export const deleteComment = async (comment_id: string) => {
   await apiClient.delete(`/delete_comment/${comment_id}`);
   console.log("deleteComment API");
+};
+
+export const createProgress = async (progressData: {
+  project_id: string;
+  title: string;
+  estimated_time: string;
+  progress_note: string;
+  // status: string;
+}) => {
+  const response = await apiClient.post("/create_progress", progressData);
+  console.log("createProgress API");
+};
+
+export const updateProgress = async (
+  progress_id: string,
+  progressData: {
+    estimated_time: string;
+    progress_note: string;
+    project_id: string;
+    title: string;
+  }
+) => {
+  await apiClient.put(`/update_progress/${progress_id}`, progressData);
+  console.log("updateProgress API");
+};
+
+export const deleteProgress = async (progress_id: string) => {
+  await apiClient.delete(`/delete_progress/${progress_id}`);
+  console.log("deleteProgress API");
 };

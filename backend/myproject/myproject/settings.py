@@ -83,11 +83,16 @@ pymysql.install_as_MySQLdb()
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": config("DB_NAME", default="projectNest_database"),
-        "USER": config("DB_USER", default="root"),
-        "PASSWORD": config("DB_PASSWORD", default=""),
-        "HOST": config("DB_HOST", default="localhost"),
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
         "PORT": config("DB_PORT", default="3306"),
+        "OPTIONS": {
+            "ssl": {
+                "ca": os.path.join(BASE_DIR, "certs", "ca.pem")  # 或你自己的路徑
+            }
+        }
     }
 }
 

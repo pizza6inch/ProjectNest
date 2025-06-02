@@ -1,4 +1,4 @@
-INSERT INTO `projectnest_database`.`myapp_user`
+INSERT INTO `defaultdb`.`myapp_user`
 (`user_id`,`name`,`email`,`password`,`role`,`image_url`,`create_at`,`update_at`)
 VALUES
 ('admin001', 'Argenti', 'admin001@ntut.org.tw','pbkdf2_sha256$1000000$DGddN5sYTcYsaw8EakEYoA$w3ePvDTHCYmhY2nePIm6yI9N16rsE/PteqAQZhnzQfw=','admin', 'https://api.hakush.in/hsr/UI/avatarshopicon/1209.webp','2023-04-26 12:00:00', '2023-04-26 12:00:00'),
@@ -71,7 +71,7 @@ VALUES
 ('112hsr067','Saifeier','t112hsr067@ntut.org.tw','pbkdf2_sha256$1000000$DGddN5sYTcYsaw8EakEYoA$w3ePvDTHCYmhY2nePIm6yI9N16rsE/PteqAQZhnzQfw=','student','https://api.hakush.in/hsr/UI/avatarshopicon/1406.webp','2023-04-26 00:00:00','2023-04-26 00:00:00');
 
 
-INSERT INTO `projectnest_database`.`myapp_project`
+INSERT INTO `defaultdb`.`myapp_project`
 (`project_id`,`title`,`description`,`status`,`is_public`,`create_at`,`update_at`,`deadline`,`progress`)
 VALUES
 (1,'Astral Express - Trailblaze','After the Aeon Akivili of "Trailblaze" fell, the followers continue to blaze the trail.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',0),
@@ -91,7 +91,7 @@ VALUES
 (15,'Jarilo-VI','A planet frozen due to the influence of the Stellaron.','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',60),
 (16,'Self-Annihilators','Followers of the path of "Nihility".','pending','1','2023-04-26 08:00:00','2023-04-26 08:00:00','2025-07-01 00:00:00',30);
 
-INSERT INTO `projectnest_database`.`myapp_projectuser`
+INSERT INTO `defaultdb`.`myapp_projectuser`
 (`id`,`project_id`,`user_id`)
 VALUES
 (1,1,'112hsr001'),(2,1,'112hsr019'),(3,1,'112hsr020'),(4,1,'112hsr021'),(5,1,'112hsr022'),
@@ -119,7 +119,7 @@ VALUES
 (72,16,'112hsr045');
 
 
-INSERT INTO `projectnest_database`.`myapp_projectprogress`
+INSERT INTO `defaultdb`.`myapp_projectprogress`
 (`progress_id`,`status`,`estimated_time`,`progress_note`,`create_at`,`update_at`,`project_id`,`user_id`,`title`)
 VALUES
 (1,'in_progress','2023-04-26 13:00:00','Almost done','2023-04-26 08:00:00','2023-04-26 08:00:00',1,'112hsr001','new progress!'),
@@ -139,7 +139,7 @@ VALUES
 (15,'in_progress','2023-04-26 08:00:00','In progress','2023-04-26 08:00:00','2023-04-26 08:00:00',6,'112hsr023','breaking news!'),
 (16,'in_progress','2023-04-26 08:00:00','In progress','2023-04-26 08:00:00','2023-04-26 08:00:00',2,'112hsr025','breaking news!');
 
-INSERT INTO `projectnest_database`.`myapp_comment`
+INSERT INTO `defaultdb`.`myapp_comment`
 (`comment_id`,`content`,`create_at`,`update_at`,`progress_id`,`user_id`)
 VALUES
 (1,'Requesting assistance','2023-04-26 08:00:00','2023-04-26 08:00:00',1,'112hsr001'),
@@ -159,7 +159,7 @@ VALUES
 (15,'Im super cold','2023-04-26 08:00:00','2023-04-26 08:00:00',6,'112hsr023'),
 (16,'Sunny green grapes','2023-04-26 08:00:00','2023-04-26 08:00:00',2,'112hsr025');
 
-INSERT INTO `projectnest_database`.`myapp_projectevent`
+INSERT INTO `defaultdb`.`myapp_projectevent`
 (`id`, `user_name`, `content`, `project_id`, `create_at`)
 VALUES
 (1, 'Trailblazer', 'Project started', 1, '2023-04-26 09:00:00'),
@@ -189,7 +189,7 @@ VALUES
 (25, 'Yukong', 'Sprint retrospective', 2, '2023-04-28 11:00:00');
 
 
-INSERT INTO `projectnest_database`.`myapp_trackprojectuser`
+INSERT INTO `defaultdb`.`myapp_trackprojectuser`
 (`id`, `project_id`, `user_id`)
 VALUES
 (1, 1, '112hsr001'),

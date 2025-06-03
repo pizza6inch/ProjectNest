@@ -58,3 +58,23 @@ pip freeze > requirements.txt
 ```
 
 ##
+
+```mermaid
+graph TD
+
+subgraph Vercel
+  A[Next.js Frontend]
+end
+
+subgraph Render
+  B[Django Backend API]
+end
+
+subgraph Aiven
+  C[(MySQL Database)]
+end
+
+User -->|Browser HTTP/HTTPS| A
+A -->|API Calls (REST or Axios)| B
+B -->|ORM Queries| C
+```
